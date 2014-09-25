@@ -1,5 +1,6 @@
 package org.graylog2.alarmcallbacks.slack;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.Maps;
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallback;
@@ -26,6 +27,11 @@ public class SlackAlarmCallback implements AlarmCallback {
     private static final String CK_UNFURL_LINKS = "unfurl_links";
     private static final String CK_ICON_URL = "icon_url";
     private static final String CK_ICON_EMOJI = "icon_emoji";
+
+    private static final CharMatcher NAME_MATCHER = CharMatcher.inRange('a', 'z')
+                    .or(CharMatcher.inRange('0', '9'))
+                    .or(CharMatcher.anyOf("_-"))
+                    .precomputed();
 
     private Configuration configuration;
 
@@ -71,7 +77,13 @@ public class SlackAlarmCallback implements AlarmCallback {
             throw new ConfigurationException(CK_CHANNEL + " is mandatory and must not be empty.");
         }
 
-        // Names must be lower case and cannot contain spaces or periods.
+        if(!NAME_MATCHER.matchesAllOf(configuration.getString(CK_CHANNEL))) {
+            throw new ConfigurationException(CK_CHANNEL + " may only contain lower case characters, numbers, '_', or '-'.");
+        }
+
+        if(configuration.stringIsSet(CK_USER_NAME) && !NAME_MATCHER.matchesAllOf(configuration.getString(CK_USER_NAME))) {
+            throw new ConfigurationException(CK_USER_NAME + " may only contain lower case characters, numbers, '_', or '-'.");
+        }
 
         if (configuration.stringIsSet(CK_ICON_URL)) {
             try {

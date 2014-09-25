@@ -17,14 +17,14 @@ import static org.junit.Assert.assertThat;
 
 public class SlackAlarmCallbackTest {
     private static final ImmutableMap<String, Object> VALID_CONFIG_SOURCE = ImmutableMap.<String, Object>builder()
-            .put("api_token", "TEST_api_token")
-            .put("channel", "TEST_channel")
-            .put("user_name", "TEST_user_name")
+            .put("api_token", "test_api_token")
+            .put("channel", "test_channel")
+            .put("user_name", "test_user_name")
             .put("add_attachment", true)
             .put("link_names", true)
             .put("unfurl_links", true)
             .put("icon_url", "http://example.com")
-            .put("icon_emoji", "TEST_icon_emoji")
+            .put("icon_emoji", "test_icon_emoji")
             .build();
     private SlackAlarmCallback alarmCallback;
 
@@ -72,9 +72,33 @@ public class SlackAlarmCallbackTest {
     }
 
     @Test(expected = ConfigurationException.class)
+    public void checkConfigurationFailsIfChannelContainsInvalidCharacters()
+            throws AlarmCallbackConfigurationException, ConfigurationException {
+        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
+                .put("api_token", "TEST_api_token")
+                .put("channel", "NO_UPPER_CASE")
+                .build();
+
+        alarmCallback.initialize(new Configuration(configSource));
+        alarmCallback.checkConfiguration();
+    }
+
+    @Test(expected = ConfigurationException.class)
+    public void checkConfigurationFailsIfUserNameContainsInvalidCharacters()
+            throws AlarmCallbackConfigurationException, ConfigurationException {
+        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
+                .put("api_token", "TEST_api_token")
+                .put("channel", "test_channel")
+                .put("user_name", "NO_UPPER_CASE")
+                .build();
+
+        alarmCallback.initialize(new Configuration(configSource));
+        alarmCallback.checkConfiguration();
+    }
+
+    @Test(expected = ConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsInvalid()
             throws AlarmCallbackConfigurationException, ConfigurationException {
-
         final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
                 .put("api_token", "TEST_api_token")
                 .put("channel", "TEST_channel")
@@ -88,7 +112,6 @@ public class SlackAlarmCallbackTest {
     @Test(expected = ConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsNotHttpOrHttps()
             throws AlarmCallbackConfigurationException, ConfigurationException {
-
         final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
                 .put("api_token", "TEST_api_token")
                 .put("channel", "TEST_channel")
