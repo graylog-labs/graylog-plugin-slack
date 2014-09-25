@@ -1,0 +1,8 @@
+Package: [[name]]
+Version: [[version]]
+Architecture: all
+Maintainer: TORCH GmbH <hello@torch.sh>
+Section: web
+Priority: optional
+Depends: graylog2-server | graylog2-radio
+Description: [[description]]

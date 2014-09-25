@@ -1,0 +1,117 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.graylog2</groupId>
+    <artifactId>graylog2-alarmcallback-slack</artifactId>
+    <version>0.90.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>graylog2-alarmcallback-slack</name>
+    <description>Graylog2 Slack Alarmcallback plugin</description>
+    <url>http://www.graylog2.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <graylog2.plugin-dir>/usr/share/graylog2-server/plugin</graylog2.plugin-dir>
+        <graylog2.version>0.90.0</graylog2.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.graylog2</groupId>
+            <artifactId>graylog2-plugin</artifactId>
+            <version>${graylog2.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.7</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <minimizeJar>false</minimizeJar>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.vafer</groupId>
+                <artifactId>jdeb</artifactId>
+                <version>1.3</version>
+                <configuration>
+                    <deb>${project.build.directory}/${project.artifactId}-${project.version}.deb</deb>
+                    <dataSet>
+                        <data>
+                            <src>${project.build.directory}/</src>
+                            <includes>${project.build.finalName}.jar</includes>
+                            <type>directory</type>
+                            <mapper>
+                                <type>perm</type>
+                                <prefix>${graylog2.plugin-dir}</prefix>
+                                <filemode>644</filemode>
+                                <user>root</user>
+                                <group>root</group>
+                            </mapper>
+                        </data>
+                    </dataSet>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <version>2.1-alpha-4</version>
+                <configuration>
+                    <group>Application/Internet</group>
+                    <prefix>/usr</prefix>
+                    <defineStatements>
+                        <defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
+                        <defineStatement>_binaries_in_noarch_packages_terminate_build 0</defineStatement>
+                    </defineStatements>
+                    <defaultFilemode>644</defaultFilemode>
+                    <defaultDirmode>755</defaultDirmode>
+                    <defaultUsername>root</defaultUsername>
+                    <defaultGroupname>root</defaultGroupname>
+                    <mappings>
+                        <mapping>
+                            <directory>${graylog2.plugin-dir}</directory>
+                            <sources>
+                                <source>
+                                    <location>${project.build.directory}/</location>
+                                    <includes>
+                                        <include>${project.build.finalName}.jar</include>
+                                    </includes>
+                                </source>
+                            </sources>
+                        </mapping>
+                    </mappings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
