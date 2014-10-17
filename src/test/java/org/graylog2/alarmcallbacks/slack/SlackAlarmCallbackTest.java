@@ -25,6 +25,7 @@ public class SlackAlarmCallbackTest {
             .put("unfurl_links", true)
             .put("icon_url", "http://example.com")
             .put("icon_emoji", "test_icon_emoji")
+            .put("graylog2_url", "http://graylog2.example.com")
             .build();
     private SlackAlarmCallback alarmCallback;
 
@@ -46,7 +47,7 @@ public class SlackAlarmCallbackTest {
 
         final Map<String, Object> attributes = alarmCallback.getAttributes();
         assertThat(attributes.keySet(), hasItems("api_token", "channel", "user_name", "add_attachment",
-                "link_names", "unfurl_links", "icon_url", "icon_emoji"));
+                "link_names", "unfurl_links", "icon_url", "icon_emoji", "graylog2_url"));
         assertThat((String) attributes.get("api_token"), equalTo("****"));
     }
 
@@ -122,11 +123,37 @@ public class SlackAlarmCallbackTest {
         alarmCallback.checkConfiguration();
     }
 
+    @Test(expected = ConfigurationException.class)
+    public void checkConfigurationFailsIfGraylog2UrlIsInvalid()
+            throws AlarmCallbackConfigurationException, ConfigurationException {
+        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
+                .put("api_token", "TEST_api_token")
+                .put("channel", "TEST_channel")
+                .put("graylog2_url", "Definitely$$Not#A!!URL")
+                .build();
+
+        alarmCallback.initialize(new Configuration(configSource));
+        alarmCallback.checkConfiguration();
+    }
+
+    @Test(expected = ConfigurationException.class)
+    public void checkConfigurationFailsIfGraylog2UrlIsNotHttpOrHttps()
+            throws AlarmCallbackConfigurationException, ConfigurationException {
+        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
+                .put("api_token", "TEST_api_token")
+                .put("channel", "TEST_channel")
+                .put("graylog2_url", "ftp://example.net")
+                .build();
+
+        alarmCallback.initialize(new Configuration(configSource));
+        alarmCallback.checkConfiguration();
+    }
+
     @Test
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),
                 hasItems("api_token", "channel", "user_name", "add_attachment", "link_names",
-                        "unfurl_links", "icon_url", "icon_emoji"));
+                        "unfurl_links", "icon_url", "icon_emoji", "graylog2_url"));
     }
 
     @Test

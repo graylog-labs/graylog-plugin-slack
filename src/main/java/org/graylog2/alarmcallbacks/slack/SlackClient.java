@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackException;
+import org.graylog2.plugin.streams.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ public class SlackClient {
     private final boolean unfurlLinks;
     private final String iconUrl;
     private final String iconEmoji;
+    private final String graylog2Uri;
 
     private final ObjectMapper objectMapper;
 
@@ -49,8 +51,9 @@ public class SlackClient {
                        final boolean linkNames,
                        final boolean unfurlLinks,
                        final String iconUrl,
-                       final String iconEmoji) {
-        this(apiToken, channel, userName, addAttachment, linkNames, unfurlLinks, iconUrl, iconEmoji, new ObjectMapper());
+                       final String iconEmoji,
+                       final String graylog2Uri) {
+        this(apiToken, channel, userName, addAttachment, linkNames, unfurlLinks, iconUrl, iconEmoji, graylog2Uri, new ObjectMapper());
     }
 
     @VisibleForTesting
@@ -62,6 +65,7 @@ public class SlackClient {
                 final boolean unfurlLinks,
                 final String iconUrl,
                 final String iconEmoji,
+                final String graylog2Uri,
                 final ObjectMapper objectMapper) {
         this.apiToken = apiToken;
         this.channel = channel;
@@ -71,10 +75,11 @@ public class SlackClient {
         this.unfurlLinks = unfurlLinks;
         this.iconUrl = iconUrl;
         this.iconEmoji = iconEmoji;
+        this.graylog2Uri = graylog2Uri;
         this.objectMapper = objectMapper;
     }
 
-    public void trigger(AlertCondition alertCondition) throws AlarmCallbackException {
+    public void trigger(AlertCondition.CheckResult checkResult, Stream stream) throws AlarmCallbackException {
         final URL url;
         try {
             url = new URL("https://slack.com/api/chat.postMessage");
@@ -92,7 +97,7 @@ public class SlackClient {
         }
 
         try (final Writer writer = new OutputStreamWriter(conn.getOutputStream())) {
-            writer.write(buildPostParametersFromAlertCondition(alertCondition));
+            writer.write(buildPostParametersFromAlertCondition(checkResult, stream));
             writer.flush();
 
             if (conn.getResponseCode() != 200) {
@@ -116,13 +121,20 @@ public class SlackClient {
         }
     }
 
-    private String buildPostParametersFromAlertCondition(AlertCondition alertCondition)
+    private String buildPostParametersFromAlertCondition(AlertCondition.CheckResult checkResult, Stream stream)
             throws UnsupportedEncodingException {
+        String message = "*Alert for stream _" + stream.getTitle() + "_*:\n"
+                + "> " + checkResult.getResultDescription() + "\n";
+
+        if (!isNullOrEmpty(graylog2Uri)) {
+            message = "<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog2>";
+        }
+
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
         final ImmutableMap.Builder<String, String> paramBuilder = ImmutableMap.<String, String>builder()
                 .put("token", URLEncoder.encode(apiToken, "UTF-8"))
                 .put("channel", URLEncoder.encode(channel, "UTF-8"))
-                .put("text", URLEncoder.encode(alertCondition.getDescription(), "UTF-8"))
+                .put("text", URLEncoder.encode(message, "UTF-8"))
                 .put("link_names", linkNames ? "1" : "0")
                 .put("unfurl_links", unfurlLinks ? "1" : "0")
                 .put("parse", "full");
@@ -136,16 +148,17 @@ public class SlackClient {
         }
 
         if (!isNullOrEmpty(iconEmoji)) {
-            paramBuilder.put("icon_emoji", URLEncoder.encode(iconEmoji, "UTF-8"));
+            paramBuilder.put("icon_emoji", URLEncoder.encode(ensureEmojiSyntax(iconEmoji), "UTF-8"));
         }
 
         if (addAttachment) {
+            final AlertCondition alertCondition = checkResult.getTriggeredCondition();
             final ImmutableList.Builder<AttachmentField> fields = ImmutableList.<AttachmentField>builder()
                     .add(new AttachmentField("Backlog", String.valueOf(alertCondition.getBacklog()), true))
                     .add(new AttachmentField("Search hits", String.valueOf(alertCondition.getSearchHits().size()), true))
-                    .add(new AttachmentField("Stream ID", alertCondition.getStream().getId(), true))
-                    .add(new AttachmentField("Stream Title", alertCondition.getStream().getTitle(), false))
-                    .add(new AttachmentField("Stream Description", alertCondition.getStream().getDescription(), false));
+                    .add(new AttachmentField("Stream ID", stream.getId(), true))
+                    .add(new AttachmentField("Stream Title", stream.getTitle(), false))
+                    .add(new AttachmentField("Stream Description", stream.getDescription(), false));
             final Attachment attachment = new Attachment("Alert details", null, "Alert details", "good", fields.build());
             final List<Attachment> attachments = ImmutableList.of(attachment);
 
@@ -159,6 +172,28 @@ public class SlackClient {
         return Joiner.on('&')
                 .withKeyValueSeparator("=")
                 .join(paramBuilder.build());
+    }
+
+    private String ensureEmojiSyntax(final String x) {
+        String emoji = x.trim();
+
+        if (!emoji.isEmpty() && !emoji.startsWith(":")) {
+            emoji = ":" + emoji;
+        }
+
+        if (!emoji.isEmpty() && !emoji.endsWith(":")) {
+            emoji = emoji + ":";
+        }
+
+        return emoji;
+    }
+
+    private String buildStreamLink(String baseUrl, Stream stream) {
+        if (!baseUrl.endsWith("/")) {
+            baseUrl = baseUrl + "/";
+        }
+
+        return baseUrl + "streams/" + stream.getId() + "/messages?q=*&rangetype=relative&relative=3600";
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

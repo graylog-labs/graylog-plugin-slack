@@ -27,6 +27,7 @@ public class SlackAlarmCallback implements AlarmCallback {
     private static final String CK_UNFURL_LINKS = "unfurl_links";
     private static final String CK_ICON_URL = "icon_url";
     private static final String CK_ICON_EMOJI = "icon_emoji";
+    private static final String CK_GRAYLOG2_URL = "graylog2_url";
 
     private static final CharMatcher NAME_MATCHER = CharMatcher.inRange('a', 'z')
                     .or(CharMatcher.inRange('0', '9'))
@@ -50,8 +51,9 @@ public class SlackAlarmCallback implements AlarmCallback {
                 configuration.getBoolean(CK_LINK_NAMES),
                 configuration.getBoolean(CK_UNFURL_LINKS),
                 configuration.getString(CK_ICON_URL),
-                configuration.getString(CK_ICON_EMOJI));
-        client.trigger(result.getTriggeredCondition());
+                configuration.getString(CK_ICON_EMOJI),
+                configuration.getString(CK_GRAYLOG2_URL));
+        client.trigger(result, stream);
     }
 
     @Override
@@ -96,6 +98,18 @@ public class SlackAlarmCallback implements AlarmCallback {
                 throw new ConfigurationException("Couldn't parse " + CK_ICON_URL + " correctly.", e);
             }
         }
+
+        if (configuration.stringIsSet(CK_GRAYLOG2_URL)) {
+            try {
+                final URI graylog2Uri = new URI(configuration.getString(CK_GRAYLOG2_URL));
+
+                if (!"http".equals(graylog2Uri.getScheme()) && !"https".equals(graylog2Uri.getScheme())) {
+                    throw new ConfigurationException(CK_GRAYLOG2_URL + " must be a valid HTTP or HTTPS URL.");
+                }
+            } catch (URISyntaxException e) {
+                throw new ConfigurationException("Couldn't parse " + CK_GRAYLOG2_URL + " correctly.", e);
+            }
+        }
     }
 
     @Override
@@ -129,12 +143,17 @@ public class SlackAlarmCallback implements AlarmCallback {
         );
         configurationRequest.addField(new TextField(
                         CK_ICON_URL, "Icon URL", null,
-                        "Name of the sender in Slack",
+                        "Image to use as the icon for this message",
                         ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
                         CK_ICON_EMOJI, "Icon Emoji", null,
                         "Emoji to use as the icon for this message (overrides Icon URL)",
+                        ConfigurationField.Optional.OPTIONAL)
+        );
+        configurationRequest.addField(new TextField(
+                        CK_GRAYLOG2_URL, "Graylog2 URL", null,
+                        "URL to your Graylog2 web interface. Used to build links in alarm notification.",
                         ConfigurationField.Optional.OPTIONAL)
         );
 
