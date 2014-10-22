@@ -25,6 +25,7 @@ public class SlackAlarmCallback implements AlarmCallback {
     private static final String CK_ADD_ATTACHMENT = "add_attachment";
     private static final String CK_LINK_NAMES = "link_names";
     private static final String CK_UNFURL_LINKS = "unfurl_links";
+    private static final String CK_CHANNEL_NOTIFICATION = "channelnotification";
     private static final String CK_ICON_URL = "icon_url";
     private static final String CK_ICON_EMOJI = "icon_emoji";
     private static final String CK_GRAYLOG2_URL = "graylog2_url";
@@ -50,6 +51,7 @@ public class SlackAlarmCallback implements AlarmCallback {
                 configuration.getBoolean(CK_ADD_ATTACHMENT),
                 configuration.getBoolean(CK_LINK_NAMES),
                 configuration.getBoolean(CK_UNFURL_LINKS),
+                 configuration.getBoolean(CK_CHANNEL_NOTIFICATION),
                 configuration.getString(CK_ICON_URL),
                 configuration.getString(CK_ICON_EMOJI),
                 configuration.getString(CK_GRAYLOG2_URL));
@@ -140,6 +142,10 @@ public class SlackAlarmCallback implements AlarmCallback {
         configurationRequest.addField(new BooleanField(
                         CK_UNFURL_LINKS, "Unfurl links", true,
                         "Enable unfurling of primarily text-based content")
+        );
+        configurationRequest.addField(new BooleanField(
+                        CK_CHANNEL_NOTIFICATION, "Channel notification", true,
+                        "Send the message with an @channel notification")
         );
         configurationRequest.addField(new TextField(
                         CK_ICON_URL, "Icon URL", null,
