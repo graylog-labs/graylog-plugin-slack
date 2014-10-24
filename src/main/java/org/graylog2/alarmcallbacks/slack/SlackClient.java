@@ -25,8 +25,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackClient {
@@ -153,9 +155,10 @@ public class SlackClient {
 
         if (addAttachment) {
             final AlertCondition alertCondition = checkResult.getTriggeredCondition();
+            final int searchHits = firstNonNull(alertCondition.getSearchHits(), Collections.emptyList()).size();
             final ImmutableList.Builder<AttachmentField> fields = ImmutableList.<AttachmentField>builder()
                     .add(new AttachmentField("Backlog", String.valueOf(alertCondition.getBacklog()), true))
-                    .add(new AttachmentField("Search hits", String.valueOf(alertCondition.getSearchHits().size()), true))
+                    .add(new AttachmentField("Search hits", String.valueOf(searchHits), true))
                     .add(new AttachmentField("Stream ID", stream.getId(), true))
                     .add(new AttachmentField("Stream Title", stream.getTitle(), false))
                     .add(new AttachmentField("Stream Description", stream.getDescription(), false));
