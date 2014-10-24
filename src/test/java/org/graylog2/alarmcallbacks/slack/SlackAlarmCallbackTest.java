@@ -21,6 +21,7 @@ public class SlackAlarmCallbackTest {
             .put("channel", "test_channel")
             .put("user_name", "test_user_name")
             .put("add_attachment", true)
+            .put("notify_channel", true)
             .put("link_names", true)
             .put("unfurl_links", true)
             .put("icon_url", "http://example.com")
@@ -47,7 +48,7 @@ public class SlackAlarmCallbackTest {
 
         final Map<String, Object> attributes = alarmCallback.getAttributes();
         assertThat(attributes.keySet(), hasItems("api_token", "channel", "user_name", "add_attachment",
-                "link_names", "unfurl_links", "icon_url", "icon_emoji", "graylog2_url"));
+                "notify_channel", "link_names", "unfurl_links", "icon_url", "icon_emoji", "graylog2_url"));
         assertThat((String) attributes.get("api_token"), equalTo("****"));
     }
 
@@ -152,7 +153,7 @@ public class SlackAlarmCallbackTest {
     @Test
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),
-                hasItems("api_token", "channel", "user_name", "add_attachment", "link_names",
+                hasItems("api_token", "channel", "user_name", "add_attachment", "notify_channel", "link_names",
                         "unfurl_links", "icon_url", "icon_emoji", "graylog2_url"));
     }
 

@@ -38,6 +38,7 @@ public class SlackClient {
     private final String channel;
     private final String userName;
     private final boolean addAttachment;
+    private final boolean notifyChannel;
     private final boolean linkNames;
     private final boolean unfurlLinks;
     private final String iconUrl;
@@ -50,12 +51,13 @@ public class SlackClient {
                        final String channel,
                        final String userName,
                        final boolean addAttachment,
+                       final boolean notifyChannel,
                        final boolean linkNames,
                        final boolean unfurlLinks,
                        final String iconUrl,
                        final String iconEmoji,
                        final String graylog2Uri) {
-        this(apiToken, channel, userName, addAttachment, linkNames, unfurlLinks, iconUrl, iconEmoji, graylog2Uri, new ObjectMapper());
+        this(apiToken, channel, userName, addAttachment, notifyChannel, linkNames, unfurlLinks, iconUrl, iconEmoji, graylog2Uri, new ObjectMapper());
     }
 
     @VisibleForTesting
@@ -63,6 +65,7 @@ public class SlackClient {
                 final String channel,
                 final String userName,
                 final boolean addAttachment,
+                final boolean notifyChannel,
                 final boolean linkNames,
                 final boolean unfurlLinks,
                 final String iconUrl,
@@ -73,6 +76,7 @@ public class SlackClient {
         this.channel = channel;
         this.userName = userName;
         this.addAttachment = addAttachment;
+        this.notifyChannel = notifyChannel;
         this.linkNames = linkNames;
         this.unfurlLinks = unfurlLinks;
         this.iconUrl = iconUrl;
@@ -125,11 +129,11 @@ public class SlackClient {
 
     private String buildPostParametersFromAlertCondition(AlertCondition.CheckResult checkResult, Stream stream)
             throws UnsupportedEncodingException {
-        String message = "*Alert for stream _" + stream.getTitle() + "_*:\n"
-                + "> " + checkResult.getResultDescription() + "\n";
+        String message = notifyChannel ? "" : "@channel ";
+        message += "*Alert for stream _" + stream.getTitle() + "_*:\n" + "> " + checkResult.getResultDescription();
 
         if (!isNullOrEmpty(graylog2Uri)) {
-            message = "<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog2>";
+            message += "\n<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog2>";
         }
 
         // See https://api.slack.com/methods/chat.postMessage for valid parameters

@@ -22,6 +22,7 @@ public class SlackAlarmCallback implements AlarmCallback {
     private static final String CK_API_TOKEN = "api_token";
     private static final String CK_CHANNEL = "channel";
     private static final String CK_USER_NAME = "user_name";
+    private static final String CK_NOTIFY_CHANNEL = "notify_channel";
     private static final String CK_ADD_ATTACHMENT = "add_attachment";
     private static final String CK_LINK_NAMES = "link_names";
     private static final String CK_UNFURL_LINKS = "unfurl_links";
@@ -30,9 +31,9 @@ public class SlackAlarmCallback implements AlarmCallback {
     private static final String CK_GRAYLOG2_URL = "graylog2_url";
 
     private static final CharMatcher NAME_MATCHER = CharMatcher.inRange('a', 'z')
-                    .or(CharMatcher.inRange('0', '9'))
-                    .or(CharMatcher.anyOf("_-"))
-                    .precomputed();
+            .or(CharMatcher.inRange('0', '9'))
+            .or(CharMatcher.anyOf("_-"))
+            .precomputed();
 
     private Configuration configuration;
 
@@ -48,6 +49,7 @@ public class SlackAlarmCallback implements AlarmCallback {
                 configuration.getString(CK_CHANNEL),
                 configuration.getString(CK_USER_NAME),
                 configuration.getBoolean(CK_ADD_ATTACHMENT),
+                configuration.getBoolean(CK_NOTIFY_CHANNEL),
                 configuration.getBoolean(CK_LINK_NAMES),
                 configuration.getBoolean(CK_UNFURL_LINKS),
                 configuration.getString(CK_ICON_URL),
@@ -79,11 +81,11 @@ public class SlackAlarmCallback implements AlarmCallback {
             throw new ConfigurationException(CK_CHANNEL + " is mandatory and must not be empty.");
         }
 
-        if(!NAME_MATCHER.matchesAllOf(configuration.getString(CK_CHANNEL))) {
+        if (!NAME_MATCHER.matchesAllOf(configuration.getString(CK_CHANNEL))) {
             throw new ConfigurationException(CK_CHANNEL + " may only contain lower case characters, numbers, '_', or '-'.");
         }
 
-        if(configuration.stringIsSet(CK_USER_NAME) && !NAME_MATCHER.matchesAllOf(configuration.getString(CK_USER_NAME))) {
+        if (configuration.stringIsSet(CK_USER_NAME) && !NAME_MATCHER.matchesAllOf(configuration.getString(CK_USER_NAME))) {
             throw new ConfigurationException(CK_USER_NAME + " may only contain lower case characters, numbers, '_', or '-'.");
         }
 
@@ -91,7 +93,7 @@ public class SlackAlarmCallback implements AlarmCallback {
             try {
                 final URI iconUri = new URI(configuration.getString(CK_ICON_URL));
 
-                if(!"http".equals(iconUri.getScheme()) && !"https".equals(iconUri.getScheme())) {
+                if (!"http".equals(iconUri.getScheme()) && !"https".equals(iconUri.getScheme())) {
                     throw new ConfigurationException(CK_ICON_URL + " must be a valid HTTP or HTTPS URL.");
                 }
             } catch (URISyntaxException e) {
@@ -134,8 +136,12 @@ public class SlackAlarmCallback implements AlarmCallback {
                         "Add structured information as message attachment")
         );
         configurationRequest.addField(new BooleanField(
+                        CK_NOTIFY_CHANNEL, "Notify Channel", false,
+                        "Notify all users in channel by adding @channel to the message.")
+        );
+        configurationRequest.addField(new BooleanField(
                         CK_LINK_NAMES, "Link names", true,
-                        "Find and link channel names and usernames")
+                        "Find and link channel names and user names")
         );
         configurationRequest.addField(new BooleanField(
                         CK_UNFURL_LINKS, "Unfurl links", true,
@@ -160,6 +166,7 @@ public class SlackAlarmCallback implements AlarmCallback {
         return configurationRequest;
     }
 
+    @Override
     public String getName() {
         return "Slack alarm callback";
     }
