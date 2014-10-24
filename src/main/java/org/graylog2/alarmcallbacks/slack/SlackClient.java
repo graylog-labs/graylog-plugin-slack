@@ -129,7 +129,7 @@ public class SlackClient {
 
     private String buildPostParametersFromAlertCondition(AlertCondition.CheckResult checkResult, Stream stream)
             throws UnsupportedEncodingException {
-        String message = notifyChannel ? "" : "@channel ";
+        String message = notifyChannel ? "@channel " : "";
         message += "*Alert for stream _" + stream.getTitle() + "_*:\n" + "> " + checkResult.getResultDescription();
 
         if (!isNullOrEmpty(graylog2Uri)) {
