@@ -40,6 +40,7 @@ public class SlackClient {
     private final boolean addAttachment;
     private final boolean linkNames;
     private final boolean unfurlLinks;
+    private final boolean channelnotification;
     private final String iconUrl;
     private final String iconEmoji;
     private final String graylog2Uri;
@@ -52,10 +53,11 @@ public class SlackClient {
                        final boolean addAttachment,
                        final boolean linkNames,
                        final boolean unfurlLinks,
+                       final boolean channelnotification,
                        final String iconUrl,
                        final String iconEmoji,
                        final String graylog2Uri) {
-        this(apiToken, channel, userName, addAttachment, linkNames, unfurlLinks, iconUrl, iconEmoji, graylog2Uri, new ObjectMapper());
+        this(apiToken, channel, userName, addAttachment, linkNames, unfurlLinks, channelnotification, iconUrl, iconEmoji, graylog2Uri, new ObjectMapper());
     }
 
     @VisibleForTesting
@@ -65,6 +67,7 @@ public class SlackClient {
                 final boolean addAttachment,
                 final boolean linkNames,
                 final boolean unfurlLinks,
+                final boolean channelnotification,
                 final String iconUrl,
                 final String iconEmoji,
                 final String graylog2Uri,
@@ -75,6 +78,7 @@ public class SlackClient {
         this.addAttachment = addAttachment;
         this.linkNames = linkNames;
         this.unfurlLinks = unfurlLinks;
+        this.channelnotification = channelnotification;
         this.iconUrl = iconUrl;
         this.iconEmoji = iconEmoji;
         this.graylog2Uri = graylog2Uri;
@@ -129,7 +133,12 @@ public class SlackClient {
                 + "> " + checkResult.getResultDescription() + "\n";
 
         if (!isNullOrEmpty(graylog2Uri)) {
-            message = "<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog2>";
+            if (channelnotification){
+                message = "@channel \n" + "<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog2>";
+            }
+            else{
+                message = "<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog2>";
+            }
         }
 
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
