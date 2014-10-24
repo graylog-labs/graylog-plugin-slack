@@ -139,7 +139,7 @@ public class SlackClient {
                 .put("text", URLEncoder.encode(message, "UTF-8"))
                 .put("link_names", linkNames ? "1" : "0")
                 .put("unfurl_links", unfurlLinks ? "1" : "0")
-                .put("parse", "full");
+                .put("parse", "none");
 
         if (!isNullOrEmpty(userName)) {
             paramBuilder.put("username", URLEncoder.encode(userName, "UTF-8"));
