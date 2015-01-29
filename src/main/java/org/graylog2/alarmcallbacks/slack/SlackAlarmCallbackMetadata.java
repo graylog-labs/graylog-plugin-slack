@@ -1,9 +1,12 @@
 package org.graylog2.alarmcallbacks.slack;
 
 import org.graylog2.plugin.PluginMetaData;
+import org.graylog2.plugin.ServerStatus;
 import org.graylog2.plugin.Version;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.Set;
 
 public class SlackAlarmCallbackMetadata implements PluginMetaData {
     @Override
@@ -28,7 +31,7 @@ public class SlackAlarmCallbackMetadata implements PluginMetaData {
 
     @Override
     public Version getVersion() {
-        return new Version(0, 90, 0);
+        return new Version(1, 0, 0);
     }
 
     @Override
@@ -38,6 +41,11 @@ public class SlackAlarmCallbackMetadata implements PluginMetaData {
 
     @Override
     public Version getRequiredVersion() {
-        return new Version(0, 90, 0);
+        return new Version(1, 0, 0);
+    }
+
+    @Override
+    public Set<ServerStatus.Capability> getRequiredCapabilities() {
+        return Collections.emptySet();
     }
 }
