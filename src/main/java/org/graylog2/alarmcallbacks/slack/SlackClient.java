@@ -133,7 +133,7 @@ public class SlackClient {
         message += "*Alert for stream _" + stream.getTitle() + "_*:\n" + "> " + checkResult.getResultDescription();
 
         if (!isNullOrEmpty(graylog2Uri)) {
-            message += "\n<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog2>";
+            message += "\n<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog>";
         }
 
         // See https://api.slack.com/methods/chat.postMessage for valid parameters

@@ -127,7 +127,7 @@ public class SlackAlarmCallback implements AlarmCallback {
                         ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                        CK_USER_NAME, "User name", "Graylog2",
+                        CK_USER_NAME, "User name", "Graylog",
                         "User name of the sender in Slack",
                         ConfigurationField.Optional.OPTIONAL)
         );
@@ -158,8 +158,8 @@ public class SlackAlarmCallback implements AlarmCallback {
                         ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                        CK_GRAYLOG2_URL, "Graylog2 URL", null,
-                        "URL to your Graylog2 web interface. Used to build links in alarm notification.",
+                        CK_GRAYLOG2_URL, "Graylog URL", null,
+                        "URL to your Graylog web interface. Used to build links in alarm notification.",
                         ConfigurationField.Optional.OPTIONAL)
         );
 

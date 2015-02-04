@@ -1,7 +1,7 @@
 # Slack alarm callback plugin
 [![Build Status](https://travis-ci.org/Graylog2/graylog2-alarmcallback-slack.svg)](https://travis-ci.org/Graylog2/graylog2-alarmcallback-slack)
 
-An alarm callback plugin for integrating [Slack](https://slack.com/) into [Graylog](https://www.graylog2.org/).
+An alarm callback plugin for integrating [Slack](https://slack.com/) into [Graylog](https://www.graylog.org/).
 
 ## Build
 
