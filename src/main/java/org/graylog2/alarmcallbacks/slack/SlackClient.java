@@ -1,6 +1,7 @@
 package org.graylog2.alarmcallbacks.slack;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -43,7 +44,7 @@ public class SlackClient {
     private final boolean unfurlLinks;
     private final String iconUrl;
     private final String iconEmoji;
-    private final String graylog2Uri;
+    private final String graylogUri;
 
     private final ObjectMapper objectMapper;
 
@@ -56,8 +57,8 @@ public class SlackClient {
                        final boolean unfurlLinks,
                        final String iconUrl,
                        final String iconEmoji,
-                       final String graylog2Uri) {
-        this(apiToken, channel, userName, addAttachment, notifyChannel, linkNames, unfurlLinks, iconUrl, iconEmoji, graylog2Uri, new ObjectMapper());
+                       final String graylogUri) {
+        this(apiToken, channel, userName, addAttachment, notifyChannel, linkNames, unfurlLinks, iconUrl, iconEmoji, graylogUri, new ObjectMapper());
     }
 
     @VisibleForTesting
@@ -70,7 +71,7 @@ public class SlackClient {
                 final boolean unfurlLinks,
                 final String iconUrl,
                 final String iconEmoji,
-                final String graylog2Uri,
+                final String graylogUri,
                 final ObjectMapper objectMapper) {
         this.apiToken = apiToken;
         this.channel = channel;
@@ -81,7 +82,7 @@ public class SlackClient {
         this.unfurlLinks = unfurlLinks;
         this.iconUrl = iconUrl;
         this.iconEmoji = iconEmoji;
-        this.graylog2Uri = graylog2Uri;
+        this.graylogUri = graylogUri;
         this.objectMapper = objectMapper;
     }
 
@@ -132,8 +133,8 @@ public class SlackClient {
         String message = notifyChannel ? "@channel " : "";
         message += "*Alert for stream _" + stream.getTitle() + "_*:\n" + "> " + checkResult.getResultDescription();
 
-        if (!isNullOrEmpty(graylog2Uri)) {
-            message += "\n<" + buildStreamLink(graylog2Uri, stream) + "|Open stream in Graylog>";
+        if (!isNullOrEmpty(graylogUri)) {
+            message += "\n<" + buildStreamLink(graylogUri, stream) + "|Open stream in Graylog>";
         }
 
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
@@ -204,6 +205,7 @@ public class SlackClient {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Attachment {
         @JsonProperty
         public String fallback;
@@ -227,6 +229,7 @@ public class SlackClient {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class AttachmentField {
         @JsonProperty
         public String title;
