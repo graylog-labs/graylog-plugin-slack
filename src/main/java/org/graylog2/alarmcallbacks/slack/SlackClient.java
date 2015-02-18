@@ -246,6 +246,7 @@ public class SlackClient {
         }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SlackResponse {
         @JsonProperty
         public boolean ok;
