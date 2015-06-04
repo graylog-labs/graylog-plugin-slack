@@ -2,3 +2,24 @@ language: java
 jdk:
   - oraclejdk7
   - oraclejdk8
+addons:
+  apt:
+    packages:
+      - rpm
+before_deploy:
+  - mvn jdeb:jdeb && export RELEASE_DEB_FILE=$(ls target/*.deb)
+  - mvn rpm:rpm && export RELEASE_RPM_FILE=$(ls target/rpm/graylog-alarmcallback-slack/RPMS/noarch/graylog-alarmcallback-slack-*.rpm)
+  - export RELEASE_PKG_FILE=$(ls target/graylog-alarmcallback-slack-*.jar)
+  - echo "Deploying release to GitHub releases"
+deploy:
+  provider: releases
+  api_key:
+    secure: "cfsp/gHiW9Pgi7GE4jaKoUcI57b9oqTt+ShEVfKAlrPsKJvZJkRuKoWQOnpp5FUidIhxn1WD6fOq5q+hEiDskhcLVwdPXOkEZ5dKgjeSdSx/DMNfUPxDl6OYovnDkzXFgRkM+vgd9IWQecpJh4ZPfnCB50k508QYEBstNYSXYY4="
+  file: 
+    - "${RELEASE_PKG_FILE}"
+    - "${RELEASE_DEB_FILE}"
+    - "${RELEASE_RPM_FILE}"
+  skip_cleanup: true
+  on:
+    tags: true
+    jdk: oraclejdk7
