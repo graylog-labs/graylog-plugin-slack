@@ -7,7 +7,7 @@
 
     <groupId>org.graylog</groupId>
     <artifactId>graylog-alarmcallback-slack</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <name>graylog-alarmcallback-slack</name>
@@ -27,7 +27,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <graylog2.plugin-dir>/usr/share/graylog2-server/plugin</graylog2.plugin-dir>
-        <graylog2.version>1.0.2</graylog2.version>
+        <graylog2.version>1.1.0</graylog2.version>
     </properties>
 
     <dependencies>
