@@ -160,7 +160,8 @@ public class SlackClient {
 
         if (addAttachment) {
             final AlertCondition alertCondition = checkResult.getTriggeredCondition();
-            final int searchHits = firstNonNull(alertCondition.getSearchHits(), Collections.emptyList()).size();
+            final int matchingMessagesSize = checkResult.getMatchingMessages().size();
+            final int searchHits = Math.min(alertCondition.getBacklog(), matchingMessagesSize);
             final ImmutableList.Builder<AttachmentField> fields = ImmutableList.<AttachmentField>builder()
                     .add(new AttachmentField("Backlog", String.valueOf(alertCondition.getBacklog()), true))
                     .add(new AttachmentField("Search hits", String.valueOf(searchHits), true))
