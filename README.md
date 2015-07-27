@@ -2,7 +2,7 @@
 
 ![](https://s3.amazonaws.com/graylog2public/images/plugin-alarmcallback-slack-1.png)
 
-[![Build Status](https://travis-ci.org/Graylog2/graylog2-alarmcallback-slack.svg)](https://travis-ci.org/Graylog2/graylog2-alarmcallback-slack)
+[![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-alarmcallback-slack.svg)](https://travis-ci.org/Graylog2/graylog-plugin-alarmcallback-slack)
 
 This plugin can notify [Slack](https://www.slack.com) channels about triggered alerts in Graylog.
 
