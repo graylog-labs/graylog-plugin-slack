@@ -8,13 +8,14 @@ addons:
       - rpm
 before_deploy:
   - mvn jdeb:jdeb && export RELEASE_DEB_FILE=$(ls target/*.deb)
-  - mvn rpm:rpm && export RELEASE_RPM_FILE=$(ls target/rpm/graylog-alarmcallback-slack/RPMS/noarch/graylog-alarmcallback-slack-*.rpm)
-  - export RELEASE_PKG_FILE=$(ls target/graylog-alarmcallback-slack-*.jar)
+  - mvn rpm:rpm && export RELEASE_RPM_FILE=$(find target/ -name '*.rpm' | tail -1)
+  - rm -f target/original-*.jar
+  - export RELEASE_PKG_FILE=$(ls target/*.jar)
   - echo "Deploying release to GitHub releases"
 deploy:
   provider: releases
   api_key:
-    secure: "cfsp/gHiW9Pgi7GE4jaKoUcI57b9oqTt+ShEVfKAlrPsKJvZJkRuKoWQOnpp5FUidIhxn1WD6fOq5q+hEiDskhcLVwdPXOkEZ5dKgjeSdSx/DMNfUPxDl6OYovnDkzXFgRkM+vgd9IWQecpJh4ZPfnCB50k508QYEBstNYSXYY4="
+    secure: "wTxthrNbMvcK9xNoJPpb2iZS0/WCcVge5psWhQg2dvu1Tw4CAti3sLF9CW+laJInXc+xxN4ApuQfjUx5Zzf8TK+1fxu6dgIdor3T09v9B+832PC7C9zJZ8txtDowMuqyV2V0ZXNJIxLGyLyxH+ipVfY3y+tZYHRGzSb9yHECg/mhNcn6bdyrwTk8wd+wkbVkSCLVcqycjlFK1xLbwM4+2qqO2rv1rycAzr9J1aaN7k90n1R2PU+IEGFtjpgF3si+1dzVQ3aFYlU+pFqVsTBHhXkzRhK2JAPipGtSYfjKwZ92Ca6EPlPrGKzN57q0LO7923qbtQxEx/BAjrF77U3GhHbIZ2SwgVvvyvvt45XGpAmj7VCY5SHwmGIpPyTFpQd8Wz01i5oFKpqu1x6b7s3Ugtm3YAlmCDqmt2qxyQum4ZljOxYQrsGXwSzsBVWMtcw4nj3J57HXLW4xw9jp7vlb33KvxkYMxHw5h+quSZnNLqVU6NF+25DkUp+LpaZDcPF34I3wMWh7LPAh4LqtNnQJXARvJPzebTXSRWeR1CUnuWYv8VN9Qg9a83Fei1F/Pp7IwR109xUAE2cCjyck66p4dHX3Y/Zp4XknPEaLduwoZZ7hLsTgDnlMO44wDlcbKG4giHmzikRsoF4Vn4kmlqRjuCGeKU09lzLtD/qPQxke3JA="
   file: 
     - "${RELEASE_PKG_FILE}"
     - "${RELEASE_DEB_FILE}"
