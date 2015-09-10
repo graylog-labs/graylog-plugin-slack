@@ -11,7 +11,7 @@ This plugin can notify [Slack](https://www.slack.com) channels about triggered a
 
 ## Installation
 
-[Download the plugin](https://github.com/Graylog2/graylog-plugin-hipchat/releases)
+[Download the plugin](https://github.com/Graylog2/graylog-plugin-slack/releases)
 and place the `.jar` file in your Graylog plugin directory. The plugin directory
 is the `plugins/` folder relative from your `graylog-server` directory by default
 and can be configured in your `graylog.conf` file.
