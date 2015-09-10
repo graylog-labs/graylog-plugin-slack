@@ -5,12 +5,12 @@
     </prerequisites>
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.graylog</groupId>
-    <artifactId>graylog-alarmcallback-slack</artifactId>
-    <version>1.1.4</version>
+    <groupId>org.graylog.plugins</groupId>
+    <artifactId>graylog-plugin-slack</artifactId>
+    <version>1.1.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>graylog-alarmcallback-slack</name>
+    <name>${project.artifactId}</name>
     <description>Graylog Slack Alarmcallback plugin</description>
     <url>https://www.graylog.org</url>
 
@@ -21,6 +21,13 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:Graylog2/graylog-plugin-slack.git</connection>
+        <developerConnection>scm:git:git@github.com:Graylog2/graylog-plugin-slack.git</developerConnection>
+        <url>https://github.com/Graylog2/graylog-plugin-slack</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -74,6 +81,19 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <preparationGoals>clean test</preparationGoals>
+                    <goals>package</goals>
+                </configuration>
             </plugin>
 
             <plugin>
