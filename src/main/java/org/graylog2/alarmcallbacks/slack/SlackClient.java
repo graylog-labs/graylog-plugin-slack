@@ -24,12 +24,10 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackClient {
@@ -130,12 +128,17 @@ public class SlackClient {
 
     private String buildPostParametersFromAlertCondition(AlertCondition.CheckResult checkResult, Stream stream)
             throws UnsupportedEncodingException {
-        final StringBuilder message = new StringBuilder(notifyChannel ? "@channel " : "");
-        message.append("*Alert for stream _" + stream.getTitle() + "_*:\n" + "> " + checkResult.getResultDescription());
 
-        if (!isNullOrEmpty(graylogUri)) {
-            message.append("\n<" + buildStreamLink(graylogUri, stream) + "|Open stream in Graylog>");
+        String titleLink;
+        if (isSet(graylogUri)) {
+            titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
+        } else {
+            titleLink = "_" + stream.getTitle() + "_";
         }
+
+        final StringBuilder message = new StringBuilder(notifyChannel ? "@channel " : "");
+        message.append("*Alert for Graylog stream " + titleLink + "*:\n" + "> " + checkResult.getResultDescription());
+
 
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
         final Map<String, Object> params = new HashMap<String, Object>(){{
@@ -145,28 +148,24 @@ public class SlackClient {
                 put("parse", "none");
         }};
 
-        if (!isNullOrEmpty(userName)) {
+        if (isSet(userName)) {
            params.put("username", userName);
         }
 
-        if (!isNullOrEmpty(iconUrl)) {
+        if (isSet(iconUrl)) {
             params.put("icon_url", iconUrl);
         }
 
-        if (!isNullOrEmpty(iconEmoji)) {
+        if (isSet(iconEmoji)) {
             params.put("icon_emoji", ensureEmojiSyntax(iconEmoji));
         }
 
         if (addAttachment) {
-            final AlertCondition alertCondition = checkResult.getTriggeredCondition();
-            final int searchHits = firstNonNull(alertCondition.getSearchHits(), Collections.emptyList()).size();
             final ImmutableList.Builder<AttachmentField> fields = ImmutableList.<AttachmentField>builder()
-                    .add(new AttachmentField("Backlog", String.valueOf(alertCondition.getBacklog()), true))
-                    .add(new AttachmentField("Search hits", String.valueOf(searchHits), true))
                     .add(new AttachmentField("Stream ID", stream.getId(), true))
                     .add(new AttachmentField("Stream Title", stream.getTitle(), false))
                     .add(new AttachmentField("Stream Description", stream.getDescription(), false));
-            final Attachment attachment = new Attachment("Alert details", null, "Alert details", color, fields.build());
+            final Attachment attachment = new Attachment("Alert details", null, "Details:", color, fields.build());
             final List<Attachment> attachments = ImmutableList.of(attachment);
 
             params.put("attachments", attachments);
@@ -251,4 +250,11 @@ public class SlackClient {
         }
     }
 
+    private final boolean isSet(String x) {
+        // Bug in graylog-server v1.2: Empty values are stored as "null" String. This is a dirty workaround.
+        return !isNullOrEmpty(x) && !x.equals("null");
+    }
+
 }
+
+
