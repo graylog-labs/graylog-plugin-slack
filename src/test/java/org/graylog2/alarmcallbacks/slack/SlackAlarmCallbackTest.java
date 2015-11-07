@@ -153,7 +153,7 @@ public class SlackAlarmCallbackTest {
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),
                 hasItems("webhook_url", "channel", "user_name", "add_attachment", "notify_channel", "link_names",
-                        "unfurl_links", "icon_url", "icon_emoji", "graylog2_url"));
+                        "icon_url", "icon_emoji", "graylog2_url"));
     }
 
     @Test
