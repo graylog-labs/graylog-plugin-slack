@@ -19,16 +19,17 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 public class SlackAlarmCallback implements AlarmCallback {
-    private static final String CK_API_TOKEN = "api_token";
+
+    private static final String CK_WEBHOOK_URL = "webhook_url";
     private static final String CK_CHANNEL = "channel";
     private static final String CK_USER_NAME = "user_name";
     private static final String CK_NOTIFY_CHANNEL = "notify_channel";
     private static final String CK_ADD_ATTACHMENT = "add_attachment";
     private static final String CK_LINK_NAMES = "link_names";
-    private static final String CK_UNFURL_LINKS = "unfurl_links";
     private static final String CK_ICON_URL = "icon_url";
     private static final String CK_ICON_EMOJI = "icon_emoji";
     private static final String CK_GRAYLOG2_URL = "graylog2_url";
+    private static final String CK_COLOR = "color";
 
     private static final CharMatcher NAME_MATCHER = CharMatcher.inRange('a', 'z')
             .or(CharMatcher.inRange('0', '9'))
@@ -45,36 +46,28 @@ public class SlackAlarmCallback implements AlarmCallback {
     @Override
     public void call(Stream stream, AlertCondition.CheckResult result) throws AlarmCallbackException {
         final SlackClient client = new SlackClient(
-                configuration.getString(CK_API_TOKEN),
+                configuration.getString(CK_WEBHOOK_URL),
                 configuration.getString(CK_CHANNEL),
                 configuration.getString(CK_USER_NAME),
                 configuration.getBoolean(CK_ADD_ATTACHMENT),
                 configuration.getBoolean(CK_NOTIFY_CHANNEL),
                 configuration.getBoolean(CK_LINK_NAMES),
-                configuration.getBoolean(CK_UNFURL_LINKS),
                 configuration.getString(CK_ICON_URL),
                 configuration.getString(CK_ICON_EMOJI),
-                configuration.getString(CK_GRAYLOG2_URL));
+                configuration.getString(CK_GRAYLOG2_URL),
+                configuration.getString(CK_COLOR));
         client.trigger(result, stream);
     }
 
     @Override
     public Map<String, Object> getAttributes() {
-        return Maps.transformEntries(configuration.getSource(), new Maps.EntryTransformer<String, Object, Object>() {
-            @Override
-            public Object transformEntry(String key, Object value) {
-                if (CK_API_TOKEN.equals(key)) {
-                    return "****";
-                }
-                return value;
-            }
-        });
+        return configuration.getSource();
     }
 
     @Override
     public void checkConfiguration() throws ConfigurationException {
-        if (!configuration.stringIsSet(CK_API_TOKEN)) {
-            throw new ConfigurationException(CK_API_TOKEN + " is mandatory and must not be empty.");
+        if (!configuration.stringIsSet(CK_WEBHOOK_URL)) {
+            throw new ConfigurationException(CK_WEBHOOK_URL + " is mandatory and must not be empty.");
         }
 
         if (!configuration.stringIsSet(CK_CHANNEL)) {
@@ -83,6 +76,10 @@ public class SlackAlarmCallback implements AlarmCallback {
 
         if (!NAME_MATCHER.matchesAllOf(configuration.getString(CK_CHANNEL))) {
             throw new ConfigurationException(CK_CHANNEL + " may only contain lower case characters, numbers, '_', or '-'.");
+        }
+
+        if (!configuration.stringIsSet(CK_COLOR)) {
+            throw new ConfigurationException(CK_COLOR + " is mandatory and must not be empty.");
         }
 
         if (configuration.stringIsSet(CK_USER_NAME) && !NAME_MATCHER.matchesAllOf(configuration.getString(CK_USER_NAME))) {
@@ -119,11 +116,11 @@ public class SlackAlarmCallback implements AlarmCallback {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
 
         configurationRequest.addField(new TextField(
-                        CK_API_TOKEN, "API Token", "", "Slack API authentication token",
+                        CK_WEBHOOK_URL, "Webhook URL", "", "Slack \"Incoming Webhook\" URL",
                         ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                        CK_CHANNEL, "Channel", "", "ID or name of Slack channel",
+                        CK_CHANNEL, "Channel", "#channel", "Name of Slack channel",
                         ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new TextField(
@@ -131,8 +128,13 @@ public class SlackAlarmCallback implements AlarmCallback {
                         "User name of the sender in Slack",
                         ConfigurationField.Optional.OPTIONAL)
         );
+        configurationRequest.addField(new TextField(
+                        CK_COLOR, "Color", "#FF0000",
+                        "Color to use for Slack message",
+                        ConfigurationField.Optional.NOT_OPTIONAL)
+        );
         configurationRequest.addField(new BooleanField(
-                        CK_ADD_ATTACHMENT, "Add Attachment", true,
+                        CK_ADD_ATTACHMENT, "Include more information", true,
                         "Add structured information as message attachment")
         );
         configurationRequest.addField(new BooleanField(
@@ -142,10 +144,6 @@ public class SlackAlarmCallback implements AlarmCallback {
         configurationRequest.addField(new BooleanField(
                         CK_LINK_NAMES, "Link names", true,
                         "Find and link channel names and user names")
-        );
-        configurationRequest.addField(new BooleanField(
-                        CK_UNFURL_LINKS, "Unfurl links", true,
-                        "Enable unfurling of primarily text-based content")
         );
         configurationRequest.addField(new TextField(
                         CK_ICON_URL, "Icon URL", null,

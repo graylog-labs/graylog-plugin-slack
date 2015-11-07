@@ -7,9 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackException;
@@ -25,9 +24,10 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -35,63 +35,63 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public class SlackClient {
     private static final Logger LOG = LoggerFactory.getLogger(SlackClient.class);
 
-    private final String apiToken;
+    private final String webhookUrl;
     private final String channel;
     private final String userName;
     private final boolean addAttachment;
     private final boolean notifyChannel;
     private final boolean linkNames;
-    private final boolean unfurlLinks;
     private final String iconUrl;
     private final String iconEmoji;
     private final String graylogUri;
+    private final String color;
 
     private final ObjectMapper objectMapper;
 
-    public SlackClient(final String apiToken,
+    public SlackClient(final String webhookUrl,
                        final String channel,
                        final String userName,
                        final boolean addAttachment,
                        final boolean notifyChannel,
                        final boolean linkNames,
-                       final boolean unfurlLinks,
                        final String iconUrl,
                        final String iconEmoji,
-                       final String graylogUri) {
-        this(apiToken, channel, userName, addAttachment, notifyChannel, linkNames, unfurlLinks, iconUrl, iconEmoji, graylogUri, new ObjectMapper());
+                       final String graylogUri,
+                       final String color) {
+        this(webhookUrl, channel, userName, addAttachment, notifyChannel, linkNames, iconUrl, iconEmoji, graylogUri, color, new ObjectMapper());
     }
 
     @VisibleForTesting
-    SlackClient(final String apiToken,
+    SlackClient(final String webhookUrl,
                 final String channel,
                 final String userName,
                 final boolean addAttachment,
                 final boolean notifyChannel,
                 final boolean linkNames,
-                final boolean unfurlLinks,
                 final String iconUrl,
                 final String iconEmoji,
                 final String graylogUri,
+                final String color,
                 final ObjectMapper objectMapper) {
-        this.apiToken = apiToken;
+        this.webhookUrl = webhookUrl;
         this.channel = channel;
         this.userName = userName;
         this.addAttachment = addAttachment;
         this.notifyChannel = notifyChannel;
         this.linkNames = linkNames;
-        this.unfurlLinks = unfurlLinks;
         this.iconUrl = iconUrl;
         this.iconEmoji = iconEmoji;
         this.graylogUri = graylogUri;
+        this.color = color;
         this.objectMapper = objectMapper;
     }
 
     public void trigger(AlertCondition.CheckResult checkResult, Stream stream) throws AlarmCallbackException {
         final URL url;
         try {
-            url = new URL("https://slack.com/api/chat.postMessage");
+            url = new URL(webhookUrl);
         } catch (MalformedURLException e) {
-            throw new AlarmCallbackException("Error while constructing URL of Slack API.", e);
+            throw new AlarmCallbackException("Error while constructing webhook URL.", e);
         }
 
         final HttpURLConnection conn;
@@ -117,11 +117,11 @@ public class SlackClient {
         try (final InputStream responseStream = conn.getInputStream()) {
             final byte[] responseBytes = ByteStreams.toByteArray(responseStream);
 
-            final SlackResponse response = objectMapper.readValue(responseBytes, SlackResponse.class);
-            if (response.ok) {
-                LOG.debug("Successfully sent message to {}", response.channel);
+            final String response = new String(responseBytes, Charsets.UTF_8);
+            if (response.equals("ok")) {
+                LOG.debug("Successfully sent message to Slack.");
             } else {
-                LOG.warn("Message couldn't be successfully sent. Reason: {}", response.error);
+                LOG.warn("Message couldn't be successfully sent. Response was: {}", response);
             }
         } catch (IOException e) {
             throw new AlarmCallbackException("Could not read response body from Slack API", e);
@@ -130,32 +130,31 @@ public class SlackClient {
 
     private String buildPostParametersFromAlertCondition(AlertCondition.CheckResult checkResult, Stream stream)
             throws UnsupportedEncodingException {
-        String message = notifyChannel ? "@channel " : "";
-        message += "*Alert for stream _" + stream.getTitle() + "_*:\n" + "> " + checkResult.getResultDescription();
+        final StringBuilder message = new StringBuilder(notifyChannel ? "@channel " : "");
+        message.append("*Alert for stream _" + stream.getTitle() + "_*:\n" + "> " + checkResult.getResultDescription());
 
         if (!isNullOrEmpty(graylogUri)) {
-            message += "\n<" + buildStreamLink(graylogUri, stream) + "|Open stream in Graylog>";
+            message.append("\n<" + buildStreamLink(graylogUri, stream) + "|Open stream in Graylog>");
         }
 
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
-        final ImmutableMap.Builder<String, String> paramBuilder = ImmutableMap.<String, String>builder()
-                .put("token", URLEncoder.encode(apiToken, "UTF-8"))
-                .put("channel", URLEncoder.encode(channel, "UTF-8"))
-                .put("text", URLEncoder.encode(message, "UTF-8"))
-                .put("link_names", linkNames ? "1" : "0")
-                .put("unfurl_links", unfurlLinks ? "1" : "0")
-                .put("parse", "none");
+        final Map<String, Object> params = new HashMap<String, Object>(){{
+                put("channel", ensureChannelName(channel));
+                put("text", message.toString());
+                put("link_names", linkNames ? "1" : "0");
+                put("parse", "none");
+        }};
 
         if (!isNullOrEmpty(userName)) {
-            paramBuilder.put("username", URLEncoder.encode(userName, "UTF-8"));
+           params.put("username", userName);
         }
 
         if (!isNullOrEmpty(iconUrl)) {
-            paramBuilder.put("icon_url", URLEncoder.encode(iconUrl, "UTF-8"));
+            params.put("icon_url", iconUrl);
         }
 
         if (!isNullOrEmpty(iconEmoji)) {
-            paramBuilder.put("icon_emoji", URLEncoder.encode(ensureEmojiSyntax(iconEmoji), "UTF-8"));
+            params.put("icon_emoji", ensureEmojiSyntax(iconEmoji));
         }
 
         if (addAttachment) {
@@ -167,19 +166,17 @@ public class SlackClient {
                     .add(new AttachmentField("Stream ID", stream.getId(), true))
                     .add(new AttachmentField("Stream Title", stream.getTitle(), false))
                     .add(new AttachmentField("Stream Description", stream.getDescription(), false));
-            final Attachment attachment = new Attachment("Alert details", null, "Alert details", "good", fields.build());
+            final Attachment attachment = new Attachment("Alert details", null, "Alert details", color, fields.build());
             final List<Attachment> attachments = ImmutableList.of(attachment);
 
-            try {
-                paramBuilder.put("attachments", URLEncoder.encode(objectMapper.writeValueAsString(attachments), "UTF-8"));
-            } catch (JsonProcessingException e) {
-                LOG.warn("Couldn't create Slack message attachment.", e);
-            }
+            params.put("attachments", attachments);
         }
 
-        return Joiner.on('&')
-                .withKeyValueSeparator("=")
-                .join(paramBuilder.build());
+        try {
+            return new ObjectMapper().writeValueAsString(params);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Could not build payload JSON.", e);
+        }
     }
 
     private String ensureEmojiSyntax(final String x) {
@@ -202,6 +199,14 @@ public class SlackClient {
         }
 
         return baseUrl + "streams/" + stream.getId() + "/messages?q=*&rangetype=relative&relative=3600";
+    }
+
+    private String ensureChannelName(String x) {
+        if(x.startsWith("#")) {
+            return x;
+        } else {
+            return "#" + x;
+        }
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -244,18 +249,6 @@ public class SlackClient {
             this.value = value;
             this.isShort = isShort;
         }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class SlackResponse {
-        @JsonProperty
-        public boolean ok;
-        @JsonProperty
-        public String ts;
-        @JsonProperty
-        public String channel;
-        @JsonProperty
-        public String error;
     }
 
 }
