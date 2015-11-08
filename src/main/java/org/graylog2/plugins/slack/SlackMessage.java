@@ -42,7 +42,7 @@ public class SlackMessage {
     public String getJsonString() {
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
         final Map<String, Object> params = new HashMap<String, Object>(){{
-            put("channel", ensureChannelName(channel));
+            put("channel", channel);
             put("text", message.toString());
             put("link_names", linkNames ? "1" : "0");
             put("parse", "none");
@@ -75,14 +75,6 @@ public class SlackMessage {
 
     public void addAttachment(AttachmentField attachment) {
         this.attachments.add(attachment);
-    }
-
-    private String ensureChannelName(String x) {
-        if(x.startsWith("#")) {
-            return x;
-        } else {
-            return "#" + x;
-        }
     }
 
     private String ensureEmojiSyntax(final String x) {

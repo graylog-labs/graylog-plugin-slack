@@ -13,14 +13,12 @@ import org.graylog2.plugin.streams.Stream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 public class SlackPluginBase {
 
     private static final CharMatcher NAME_MATCHER = CharMatcher.inRange('a', 'z')
             .or(CharMatcher.inRange('A', 'Z'))
             .or(CharMatcher.inRange('0', '9'))
-            .or(CharMatcher.anyOf("_-#"))
+            .or(CharMatcher.anyOf("_-#@"))
             .precomputed();
 
     public static final String CK_WEBHOOK_URL = "webhook_url";
@@ -42,7 +40,7 @@ public class SlackPluginBase {
                         ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                        CK_CHANNEL, "Channel", "#channel", "Name of Slack channel",
+                        CK_CHANNEL, "Channel", "#channel", "Name of Slack #channel or @user for a direct message.",
                         ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new TextField(
@@ -95,8 +93,13 @@ public class SlackPluginBase {
             throw new ConfigurationException(CK_CHANNEL + " is mandatory and must not be empty.");
         }
 
+        String channel = configuration.getString(CK_CHANNEL);
+        if (!channel.startsWith("#") && !channel.startsWith("@")) {
+            throw new ConfigurationException(CK_CHANNEL + " must target a channel (prepended with '#') or a user (prepended with '@').");
+        }
+
         if (!NAME_MATCHER.matchesAllOf(configuration.getString(CK_CHANNEL))) {
-            throw new ConfigurationException(CK_CHANNEL + " may only contain alphanumeric characters, '#', '_', or '-'.");
+            throw new ConfigurationException(CK_CHANNEL + " may only contain alphanumeric characters, '#', '@', '_', or '-'.");
         }
 
         if (!configuration.stringIsSet(CK_COLOR)) {

@@ -18,7 +18,7 @@ import static org.junit.Assert.assertThat;
 public class SlackAlarmCallbackTest {
     private static final ImmutableMap<String, Object> VALID_CONFIG_SOURCE = ImmutableMap.<String, Object>builder()
             .put("webhook_url", "https://www.example.org/")
-            .put("channel", "test_channel")
+            .put("channel", "#test_channel")
             .put("user_name", "test_user_name")
             .put("add_attachment", true)
             .put("notify_channel", true)
@@ -73,79 +73,44 @@ public class SlackAlarmCallbackTest {
     }
 
     @Test(expected = ConfigurationException.class)
-    public void checkConfigurationFailsIfChannelContainsInvalidCharacters()
-            throws AlarmCallbackConfigurationException, ConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "NO_UPPER_CASE")
-                .build();
-
-        alarmCallback.initialize(new Configuration(configSource));
+    public void checkConfigurationFailsIfChannelContainsInvalidCharacters() throws AlarmCallbackConfigurationException, ConfigurationException {
+        alarmCallback.initialize(validConfigurationWithValue("channel", "NO_UPPER_CASE"));
         alarmCallback.checkConfiguration();
     }
 
     @Test(expected = ConfigurationException.class)
-    public void checkConfigurationFailsIfUserNameContainsInvalidCharacters()
-            throws AlarmCallbackConfigurationException, ConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "test_channel")
-                .put("user_name", "NO_UPPER_CASE")
-                .build();
+    public void checkConfigurationFailsIfChannelDoesNotTargetChannel()  throws AlarmCallbackConfigurationException, ConfigurationException {
+        alarmCallback.initialize(validConfigurationWithValue("channel", "foo"));
+        alarmCallback.checkConfiguration();
+    }
 
-        alarmCallback.initialize(new Configuration(configSource));
+    @Test
+    public void checkConfigurationFailsIfChannelDoesAcceptDirectMessages() throws AlarmCallbackConfigurationException, ConfigurationException {
+        alarmCallback.initialize(validConfigurationWithValue("channel", "@john"));
         alarmCallback.checkConfiguration();
     }
 
     @Test(expected = ConfigurationException.class)
-    public void checkConfigurationFailsIfIconUrlIsInvalid()
-            throws AlarmCallbackConfigurationException, ConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "TEST_channel")
-                .put("icon_url", "Definitely$$Not#A!!URL")
-                .build();
-
-        alarmCallback.initialize(new Configuration(configSource));
+    public void checkConfigurationFailsIfIconUrlIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
+        alarmCallback.initialize(validConfigurationWithValue("icon_url", "Definitely$$Not#A!!URL"));
         alarmCallback.checkConfiguration();
     }
 
     @Test(expected = ConfigurationException.class)
-    public void checkConfigurationFailsIfIconUrlIsNotHttpOrHttps()
-            throws AlarmCallbackConfigurationException, ConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "TEST_channel")
-                .put("icon_url", "ftp://example.net")
-                .build();
-
-        alarmCallback.initialize(new Configuration(configSource));
+    public void checkConfigurationFailsIfIconUrlIsNotHttpOrHttps() throws AlarmCallbackConfigurationException, ConfigurationException {
+        alarmCallback.initialize(validConfigurationWithValue("icon_url", "ftp://example.net"));
         alarmCallback.checkConfiguration();
     }
 
     @Test(expected = ConfigurationException.class)
-    public void checkConfigurationFailsIfGraylog2UrlIsInvalid()
-            throws AlarmCallbackConfigurationException, ConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "TEST_channel")
-                .put("graylog2_url", "Definitely$$Not#A!!URL")
-                .build();
-
-        alarmCallback.initialize(new Configuration(configSource));
+    public void checkConfigurationFailsIfGraylog2UrlIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
+        alarmCallback.initialize(validConfigurationWithValue("graylog2_url", "Definitely$$Not#A!!URL"));
         alarmCallback.checkConfiguration();
     }
 
     @Test(expected = ConfigurationException.class)
-    public void checkConfigurationFailsIfGraylog2UrlIsNotHttpOrHttps()
-            throws AlarmCallbackConfigurationException, ConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "TEST_channel")
-                .put("graylog2_url", "ftp://example.net")
-                .build();
-
-        alarmCallback.initialize(new Configuration(configSource));
+    public void checkConfigurationFailsIfGraylog2UrlIsNotHttpOrHttps() throws AlarmCallbackConfigurationException, ConfigurationException {
+        alarmCallback.initialize(validConfigurationWithValue("graylog2_url", "ftp://example.net"));
         alarmCallback.checkConfiguration();
     }
 
@@ -153,12 +118,7 @@ public class SlackAlarmCallbackTest {
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),
                 hasItems("webhook_url", "channel", "user_name", "add_attachment", "notify_channel", "link_names",
-                        "icon_url", "icon_emoji", "graylog2_url"));
-    }
-
-    @Test
-    public void testGetName() {
-        assertThat(alarmCallback.getName(), equalTo("Slack alarm callback"));
+                        "icon_url", "icon_emoji", "graylog2_url", "color"));
     }
 
     private Configuration validConfigurationWithout(final String key) {
@@ -169,4 +129,13 @@ public class SlackAlarmCallbackTest {
             }
         }));
     }
+
+    private Configuration validConfigurationWithValue(String key, String value) {
+        Map<String, Object> confCopy = Maps.newHashMap(VALID_CONFIG_SOURCE);
+        confCopy.put(key, value);
+
+        return new Configuration(confCopy);
+    }
+
+
 }

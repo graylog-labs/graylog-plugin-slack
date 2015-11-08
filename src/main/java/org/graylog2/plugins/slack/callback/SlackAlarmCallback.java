@@ -82,7 +82,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
 
     @Override
     public void checkConfiguration() throws ConfigurationException {
-        super.checkConfiguration(this.configuration);
+        checkConfiguration(this.configuration);
     }
 
     @Override

@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 public class SlackMessageOutputTest {
     private static final ImmutableMap<String, Object> VALID_CONFIG_SOURCE = ImmutableMap.<String, Object>builder()
             .put("webhook_url", "https://www.example.org/")
-            .put("channel", "test_channel")
+            .put("channel", "#test_channel")
             .put("user_name", "test_user_name")
             .put("add_attachment", true)
             .put("notify_channel", true)
@@ -48,72 +48,46 @@ public class SlackMessageOutputTest {
     @Test(expected = MessageOutputConfigurationException.class)
     public void checkConfigurationFailsIfChannelIsMissing() throws MessageOutputConfigurationException {
         new SlackMessageOutput(null, validConfigurationWithout("channel"));
-
     }
 
     @Test(expected = MessageOutputConfigurationException.class)
     public void checkConfigurationFailsIfChannelContainsInvalidCharacters() throws MessageOutputConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "NO_UPPER_CASE")
-                .build();
-
-        new SlackMessageOutput(null, new Configuration(configSource));
+        new SlackMessageOutput(null, validConfigurationWithValue("channel", "foo$barE"));
     }
 
     @Test(expected = MessageOutputConfigurationException.class)
-    public void checkConfigurationFailsIfUserNameContainsInvalidCharacters() throws MessageOutputConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "test_channel")
-                .put("user_name", "NO_UPPER_CASE")
-                .build();
+    public void checkConfigurationFailsIfChannelIsNotAChannelOrUsers() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("channel", "invalid_channel"));
+    }
 
-        new SlackMessageOutput(null, new Configuration(configSource));
+    @Test
+    public void checkConfigurationWorksWithCorrectChannelNotations() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("channel", "#valid_channel"));
+    }
+
+    @Test
+    public void checkConfigurationWorksWithCorrectDirectMessageNotations() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("channel", "@john"));
     }
 
     @Test(expected = MessageOutputConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsInvalid() throws MessageOutputConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "TEST_channel")
-                .put("icon_url", "Definitely$$Not#A!!URL")
-                .build();
-
-        new SlackMessageOutput(null, new Configuration(configSource));
+        new SlackMessageOutput(null, validConfigurationWithValue("icon_url", "Definitely$$Not#A!!URL"));
     }
 
     @Test(expected = MessageOutputConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsNotHttpOrHttps() throws MessageOutputConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "TEST_channel")
-                .put("icon_url", "ftp://example.net")
-                .build();
-
-        new SlackMessageOutput(null, new Configuration(configSource));
+        new SlackMessageOutput(null, validConfigurationWithValue("icon_url", "ftp://example.net"));
     }
 
     @Test(expected = MessageOutputConfigurationException.class)
     public void checkConfigurationFailsIfGraylog2UrlIsInvalid() throws MessageOutputConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "TEST_channel")
-                .put("graylog2_url", "Definitely$$Not#A!!URL")
-                .build();
-
-        new SlackMessageOutput(null, new Configuration(configSource));
+        new SlackMessageOutput(null, validConfigurationWithValue("graylog2_url", "Definitely$$Not#A!!URL"));
     }
 
     @Test(expected = MessageOutputConfigurationException.class)
     public void checkConfigurationFailsIfGraylog2UrlIsNotHttpOrHttps() throws MessageOutputConfigurationException {
-        final Map<String, Object> configSource = ImmutableMap.<String, Object>builder()
-                .put("webhook_url", "TEST_api_token")
-                .put("channel", "TEST_channel")
-                .put("graylog2_url", "ftp://example.net")
-                .build();
-
-        new SlackMessageOutput(null, new Configuration(configSource));
+        new SlackMessageOutput(null, validConfigurationWithValue("graylog2_url", "ftp://example.net"));
     }
 
     private Configuration validConfigurationWithout(final String key) {
@@ -123,6 +97,13 @@ public class SlackMessageOutputTest {
                 return key.equals(input.getKey());
             }
         }));
+    }
+
+    private Configuration validConfigurationWithValue(String key, String value) {
+        Map<String, Object> confCopy = Maps.newHashMap(VALID_CONFIG_SOURCE);
+        confCopy.put(key, value);
+
+        return new Configuration(confCopy);
     }
 
 }
