@@ -23,6 +23,12 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
     @Override
     public void initialize(final Configuration config) throws AlarmCallbackConfigurationException {
         this.configuration = config;
+
+        try {
+            checkConfiguration(config);
+        } catch (ConfigurationException e) {
+            throw new AlarmCallbackConfigurationException("Configuration error. " + e.getMessage());
+        }
     }
 
     @Override
@@ -82,7 +88,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
 
     @Override
     public void checkConfiguration() throws ConfigurationException {
-        checkConfiguration(this.configuration);
+        /* Never actually called by graylog-server */
     }
 
     @Override

@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertThat;
 
@@ -55,63 +54,53 @@ public class SlackAlarmCallbackTest {
     public void checkConfigurationSucceedsWithValidConfiguration()
             throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(new Configuration(VALID_CONFIG_SOURCE));
-        alarmCallback.checkConfiguration();
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfApiTokenIsMissing()
             throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithout("webhook_url"));
-        alarmCallback.checkConfiguration();
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfChannelIsMissing()
             throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithout("channel"));
-        alarmCallback.checkConfiguration();
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfChannelContainsInvalidCharacters() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("channel", "NO_UPPER_CASE"));
-        alarmCallback.checkConfiguration();
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfChannelDoesNotTargetChannel()  throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("channel", "foo"));
-        alarmCallback.checkConfiguration();
     }
 
     @Test
     public void checkConfigurationFailsIfChannelDoesAcceptDirectMessages() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("channel", "@john"));
-        alarmCallback.checkConfiguration();
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("icon_url", "Definitely$$Not#A!!URL"));
-        alarmCallback.checkConfiguration();
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsNotHttpOrHttps() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("icon_url", "ftp://example.net"));
-        alarmCallback.checkConfiguration();
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfGraylog2UrlIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("graylog2_url", "Definitely$$Not#A!!URL"));
-        alarmCallback.checkConfiguration();
     }
 
-    @Test(expected = ConfigurationException.class)
+    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfGraylog2UrlIsNotHttpOrHttps() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("graylog2_url", "ftp://example.net"));
-        alarmCallback.checkConfiguration();
     }
 
     @Test
