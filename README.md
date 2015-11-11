@@ -11,7 +11,7 @@ This plugin can notify [Slack](https://www.slack.com) channels about triggered a
 
 ## v2.0 upgrade notes
 
-**Alarm callbacks created with previous plugin versions will be marked as invalid and should be removed in the web interface.** Please create completely new alarm callbacks.
+**Alarm callbacks created with previous plugin versions will be marked as invalid and should be removed using the web interface.** Please create completely new alarm callbacks. Besides that you can just replace the old .jar file in your plugins folder with the new one and restart graylog-server.
 
 ## Changes in v2.0
 
