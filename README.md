@@ -18,6 +18,7 @@ This plugin can notify [Slack](https://www.slack.com) channels about triggered a
 * We are now using the Slack Incoming Webhooks instead of API tokens. This way the plugin is no longer bound to a user.
 * Now includes message output plugin. You can forward messages from a (low throughput) stream directly into Slack. For example for specific error messages or events that happen on your monitored devices and applications. (We are using to be notified about new [Graylog Marketplace](https://marketplace.graylog.org/) submissions for example.)
 * You can now define a color to use. For example red for alerts and green for general notifications.
+* Message can not only be sent to a channel but also as a private message to users. The syntax is *#channel* to send into a channel or *@username* for a private message.
 * Several bugfixes and improvements
 
 ## Installation
