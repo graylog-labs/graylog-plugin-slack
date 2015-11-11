@@ -3,11 +3,22 @@ Slack Plugin for Graylog
 
 [![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-slack.svg)](https://travis-ci.org/Graylog2/graylog-plugin-slack)
 
-![](https://s3.amazonaws.com/graylog2public/images/plugin-alarmcallback-slack-1.png)
+![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot.png)
 
-This plugin can notify [Slack](https://www.slack.com) channels about triggered alerts in Graylog.
+This plugin can notify [Slack](https://www.slack.com) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
 
 **Required Graylog version:** 1.0 and later
+
+## v2.0 upgrade notes
+
+**Alarm callbacks created with previous plugin versions will be marked as invalid and should be removed in the web interface.** Please create completely new alarm callbacks.
+
+## Changes in v2.0
+
+* We are now using the Slack Incoming Webhooks instead of API tokens. This way the plugin is no longer bound to a user.
+* Now includes message output plugin. You can forward messages from a (low throughput) stream directly into Slack. For example for specific error messages or events that happen on your monitored devices and applications. (We are using to be notified about new [Graylog Marketplace](https://marketplace.graylog.org/) submissions for example.)
+* You can now define a color to use. For example red for alerts and green for general notifications.
+* Several bugfixes and improvements
 
 ## Installation
 
@@ -20,13 +31,15 @@ Restart `graylog-server` and you are done.
 
 ## Usage
 
-#### Step 1: Create Slack API token
+#### Step 1: Create Slack Incoming Webhook
 
-The plugin configuration asks for a Slack API token which can be created by visiting [https://api.slack.com/web](https://api.slack.com/web) and press "Create token". (make sure you are logged in)
+[Create a new Slack Incoming Webhook](https://graylog.slack.com/services/new/incoming-webhook) and copy the URL it will present to you. It will ask you to select a Slack channel but you can override it in the plugin configuration later.
 
-#### Step 2: Create alarm callback
+#### Step 2: Create alarm callback or message output
 
-Create a "Slack alarm callback" on the "Manage alerts" page of your stream. Enter the requested configuration and save. Make sure you also configured alert conditions for the stream so that the alerts are actually triggered.
+Create a "Slack alarm callback" on the "Manage alerts" page of your stream. Enter the requested configuration (use the Incoming Webhook URL you created in step 1) and save. Make sure you also configured alert conditions for the stream so that the alerts are actually triggered.
+
+The same applies for message outputs which you can configure in *Stream* - > *Manage Outputs*.
 
 ## Build
 
