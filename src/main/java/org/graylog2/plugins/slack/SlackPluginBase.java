@@ -1,7 +1,6 @@
 package org.graylog2.plugins.slack;
 
 import com.google.common.base.CharMatcher;
-import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
 import org.graylog2.plugin.configuration.ConfigurationRequest;
@@ -26,6 +25,7 @@ public class SlackPluginBase {
     public static final String CK_USER_NAME = "user_name";
     public static final String CK_NOTIFY_CHANNEL = "notify_channel";
     public static final String CK_ADD_ATTACHMENT = "add_attachment";
+    public static final String CK_SHORT_MODE = "short_mode";
     public static final String CK_LINK_NAMES = "link_names";
     public static final String CK_ICON_URL = "icon_url";
     public static final String CK_ICON_EMOJI = "icon_emoji";
@@ -56,6 +56,11 @@ public class SlackPluginBase {
         configurationRequest.addField(new BooleanField(
                         CK_ADD_ATTACHMENT, "Include more information", true,
                         "Add structured information as message attachment")
+        );
+        configurationRequest.addField(new BooleanField(
+                        CK_SHORT_MODE, "Short mode", false,
+                        "Enable short mode? This strips down the Slack message to the bare minimum to take less space in the chat room. " +
+                                "Not used in alarm callback but only in the message output module.")
         );
         configurationRequest.addField(new BooleanField(
                         CK_NOTIFY_CHANNEL, "Notify Channel", false,

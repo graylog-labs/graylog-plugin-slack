@@ -13,6 +13,9 @@ import org.graylog2.plugin.inputs.annotations.FactoryClass;
 import org.graylog2.plugin.outputs.MessageOutput;
 import org.graylog2.plugin.outputs.MessageOutputConfigurationException;
 import org.graylog2.plugin.streams.Stream;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import java.util.List;
 import java.util.Map;
@@ -68,7 +71,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         );
 
         // Add attachments if requested.
-        if(configuration.getBoolean(CK_ADD_ATTACHMENT)) {
+        if(!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_ATTACHMENT)) {
             slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
             slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
 
@@ -90,6 +93,14 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
     }
 
     public String buildMessage(Stream stream, Message msg) {
+        if(configuration.getBoolean(CK_SHORT_MODE)) {
+            return new StringBuilder()
+                    .append(msg.getTimestamp().toDateTime(DateTimeZone.getDefault()).toString(DateTimeFormat.shortTime()))
+                    .append(": ")
+                    .append(msg.getMessage())
+                    .toString();
+        }
+
         String graylogUri = configuration.getString(CK_GRAYLOG2_URL);
         boolean notifyChannel = configuration.getBoolean(CK_NOTIFY_CHANNEL);
 
