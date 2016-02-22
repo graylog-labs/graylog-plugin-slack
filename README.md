@@ -3,11 +3,17 @@ Slack Plugin for Graylog
 
 [![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-slack.svg)](https://travis-ci.org/Graylog2/graylog-plugin-slack)
 
+#### Detailed alarm notification and message output:
+
 ![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot.png)
 
 This plugin can notify [Slack](https://www.slack.com) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
 
-**Required Graylog version:** 1.0 and later
+#### Short mode message output:
+
+![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot-short-mode.png)
+
+Great for streams with higher message throughput. The screenshot shows the output of a nightly task that updates information of the Graylog Marketplace.
 
 ## v2.0 upgrade notes
 
