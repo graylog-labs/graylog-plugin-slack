@@ -50,7 +50,7 @@ The same applies for message outputs which you can configure in *Stream* - > *Ma
 
 ## Build
 
-This project is using Maven and requires Java 7 or higher.
+This project is using Maven and requires Java 8 or higher.
 
 You can build a plugin (JAR) with `mvn package`.
 

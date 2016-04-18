@@ -32,7 +32,7 @@ public class SlackPluginMetadata implements PluginMetaData {
 
     @Override
     public Version getVersion() {
-        return new Version(2, 1, 0);
+        return new Version(2, 2, 0, "SNAPSHOT");
     }
 
     @Override
@@ -42,7 +42,7 @@ public class SlackPluginMetadata implements PluginMetaData {
 
     @Override
     public Version getRequiredVersion() {
-        return new Version(1, 0, 0);
+        return new Version(2, 0, 0);
     }
 
     @Override
