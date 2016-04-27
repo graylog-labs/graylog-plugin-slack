@@ -23,5 +23,5 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    jdk: oraclejdk7
+    jdk: oraclejdk8
 sudo: false
