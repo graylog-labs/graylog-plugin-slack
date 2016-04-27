@@ -3,6 +3,10 @@ Slack Plugin for Graylog
 
 [![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-slack.svg)](https://travis-ci.org/Graylog2/graylog-plugin-slack)
 
+**Required Graylog version:** 2.0 and later.
+
+Please use version 2.1.0 of this plugin if you are still running Graylog 1.x
+
 #### Detailed alarm notification and message output:
 
 ![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot.png)
