@@ -68,16 +68,6 @@ public class SlackAlarmCallbackTest {
         alarmCallback.initialize(validConfigurationWithout("channel"));
     }
 
-    @Test(expected = AlarmCallbackConfigurationException.class)
-    public void checkConfigurationFailsIfChannelContainsInvalidCharacters() throws AlarmCallbackConfigurationException, ConfigurationException {
-        alarmCallback.initialize(validConfigurationWithValue("channel", "NO_UPPER_CASE"));
-    }
-
-    @Test(expected = AlarmCallbackConfigurationException.class)
-    public void checkConfigurationFailsIfChannelDoesNotTargetChannel()  throws AlarmCallbackConfigurationException, ConfigurationException {
-        alarmCallback.initialize(validConfigurationWithValue("channel", "foo"));
-    }
-
     @Test
     public void checkConfigurationFailsIfChannelDoesAcceptDirectMessages() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("channel", "@john"));

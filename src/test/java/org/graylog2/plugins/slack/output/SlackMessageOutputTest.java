@@ -50,16 +50,6 @@ public class SlackMessageOutputTest {
         new SlackMessageOutput(null, validConfigurationWithout("channel"));
     }
 
-    @Test(expected = MessageOutputConfigurationException.class)
-    public void checkConfigurationFailsIfChannelContainsInvalidCharacters() throws MessageOutputConfigurationException {
-        new SlackMessageOutput(null, validConfigurationWithValue("channel", "foo$barE"));
-    }
-
-    @Test(expected = MessageOutputConfigurationException.class)
-    public void checkConfigurationFailsIfChannelIsNotAChannelOrUsers() throws MessageOutputConfigurationException {
-        new SlackMessageOutput(null, validConfigurationWithValue("channel", "invalid_channel"));
-    }
-
     @Test
     public void checkConfigurationWorksWithCorrectChannelNotations() throws MessageOutputConfigurationException {
         new SlackMessageOutput(null, validConfigurationWithValue("channel", "#valid_channel"));
