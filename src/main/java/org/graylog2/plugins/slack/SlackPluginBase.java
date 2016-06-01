@@ -98,15 +98,6 @@ public class SlackPluginBase {
             throw new ConfigurationException(CK_CHANNEL + " is mandatory and must not be empty.");
         }
 
-        String channel = configuration.getString(CK_CHANNEL);
-        if (!channel.startsWith("#") && !channel.startsWith("@")) {
-            throw new ConfigurationException(CK_CHANNEL + " must target a channel (prepended with '#') or a user (prepended with '@').");
-        }
-
-        if (!NAME_MATCHER.matchesAllOf(configuration.getString(CK_CHANNEL))) {
-            throw new ConfigurationException(CK_CHANNEL + " may only contain alphanumeric characters, '#', '@', '_', or '-'.");
-        }
-
         if (!configuration.stringIsSet(CK_COLOR)) {
             throw new ConfigurationException(CK_COLOR + " is mandatory and must not be empty.");
         }
