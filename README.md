@@ -1,4 +1,4 @@
-Slack Plugin for Graylog
+Slack/Mattermost Plugin for Graylog
 ========================
 
 [![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-slack.svg)](https://travis-ci.org/Graylog2/graylog-plugin-slack)
@@ -11,7 +11,7 @@ Please use version 2.1.0 of this plugin if you are still running Graylog 1.x
 
 ![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot.png)
 
-This plugin can notify [Slack](https://www.slack.com) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
+This plugin can notify [Slack](https://www.slack.com) or [Mattermost](http://www.mattermost.org) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
 
 #### Short mode message output:
 
@@ -42,9 +42,17 @@ Restart `graylog-server` and you are done.
 
 ## Usage
 
+### For Slack:
+
 #### Step 1: Create Slack Incoming Webhook
 
 Create a new Slack Incoming Webhook (https://<organization>.slack.com/services/new/incoming-webhook) and copy the URL it will present to you. It will ask you to select a Slack channel but you can override it in the plugin configuration later.
+
+### For Mattermost:
+
+#### Step 1: Create Mattermost Incoming Webhook
+
+Enable Webhooks in general and create an incoming Webhook for Graylog as described in the [Mattermost docs](http://docs.mattermost.com/developer/webhooks-incoming.html).
 
 #### Step 2: Create alarm callback or message output
 
