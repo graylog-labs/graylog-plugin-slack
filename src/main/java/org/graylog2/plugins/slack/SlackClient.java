@@ -36,6 +36,7 @@ public class SlackClient {
             conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
         } catch (IOException e) {
             throw new SlackClientException("Could not open connection to Slack API", e);
         }
