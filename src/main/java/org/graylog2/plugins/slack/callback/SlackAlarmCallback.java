@@ -11,8 +11,15 @@ import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
 import org.graylog2.plugin.configuration.ConfigurationRequest;
 import org.graylog2.plugin.streams.Stream;
+import org.graylog2.plugin.Message;
+import org.graylog2.plugin.MessageSummary;
+
+import com.google.common.collect.Lists;
 
 import java.util.Map;
+import java.util.Collections;
+import java.util.List;
+
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -46,10 +53,20 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         );
 
         // Add attachments if requested.
+        final List<Message> backlog_items = getAlarmBacklog(result);
+
         if(configuration.getBoolean(CK_ADD_ATTACHMENT)) {
             message.addAttachment(new SlackMessage.AttachmentField("Stream ID", stream.getId(), true));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Title", stream.getTitle(), false));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
+            for (Message logMessage : backlog_items) {
+                final String msg = logMessage.getMessage();
+                if (msg.length() > 512) {
+                    message.addAttachment(new SlackMessage.AttachmentField("Backlog Summary", msg.substring(0, 512), false));
+                } else {
+                    message.addAttachment(new SlackMessage.AttachmentField("Backlog Summary", msg, false));
+                }
+            }
         }
 
         try {
@@ -57,6 +74,27 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         } catch (SlackClient.SlackClientException e) {
             throw new RuntimeException("Could not send message to Slack.", e);
         }
+    }
+
+    protected List<Message> getAlarmBacklog(AlertCondition.CheckResult result) {
+        final AlertCondition alertCondition = result.getTriggeredCondition();
+        final List<MessageSummary> matchingMessages = result.getMatchingMessages();
+
+        final int effectiveBacklogSize = Math.min(alertCondition.getBacklog(), matchingMessages.size());
+
+        if (effectiveBacklogSize == 0) {
+            return Collections.emptyList();
+        }
+
+        final List<MessageSummary> backlogSummaries = matchingMessages.subList(0, effectiveBacklogSize);
+
+        final List<Message> backlog = Lists.newArrayListWithCapacity(effectiveBacklogSize);
+
+        for (MessageSummary messageSummary : backlogSummaries) {
+            backlog.add(messageSummary.getRawMessage());
+        }
+
+        return backlog;
     }
 
     public String buildMessage(Stream stream, AlertCondition.CheckResult result) {
