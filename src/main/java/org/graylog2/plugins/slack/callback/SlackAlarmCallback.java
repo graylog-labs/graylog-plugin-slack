@@ -59,12 +59,23 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
             message.addAttachment(new SlackMessage.AttachmentField("Stream ID", stream.getId(), true));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Title", stream.getTitle(), false));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-            for (Message logMessage : backlog_items) {
-                final String msg = logMessage.getMessage();
-                if (msg.length() > 512) {
-                    message.addAttachment(new SlackMessage.AttachmentField("Backlog Summary", msg.substring(0, 512), false));
-                } else {
-                    message.addAttachment(new SlackMessage.AttachmentField("Backlog Summary", msg, false));
+            
+            int count = configuration.getInt(CK_ADD_BLITEMS);
+            if(count < 1){
+                count = 5; //Default items to show
+            }
+            final int bl_size = backlog_items.size();
+            if(bl_size < count){
+                count = bl_size;
+            }
+            for (int i = 0; i < count; i++) {
+                final String msg = backlog_items.get(i).getMessage();
+                if(msg != null){
+                    if (msg.length() > 512) {
+                        message.addAttachment(new SlackMessage.AttachmentField("Backlog Summary", msg.substring(0, 512), false));
+                    } else {
+                        message.addAttachment(new SlackMessage.AttachmentField("Backlog Summary", msg, false));
+                    }
                 }
             }
         }

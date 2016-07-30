@@ -7,6 +7,7 @@ import org.graylog2.plugin.configuration.ConfigurationRequest;
 import org.graylog2.plugin.configuration.fields.BooleanField;
 import org.graylog2.plugin.configuration.fields.ConfigurationField;
 import org.graylog2.plugin.configuration.fields.TextField;
+import org.graylog2.plugin.configuration.fields.NumberField;
 import org.graylog2.plugin.streams.Stream;
 
 import java.net.URI;
@@ -31,6 +32,7 @@ public class SlackPluginBase {
     public static final String CK_ICON_EMOJI = "icon_emoji";
     public static final String CK_GRAYLOG2_URL = "graylog2_url";
     public static final String CK_COLOR = "color";
+    public static final String CK_ADD_BLITEMS = "backlog_items";
 
     public static ConfigurationRequest configuration() {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
@@ -57,6 +59,11 @@ public class SlackPluginBase {
                         CK_ADD_ATTACHMENT, "Include more information", true,
                         "Add structured information as message attachment")
         );
+        configurationRequest.addField(new NumberField(
+                        CK_ADD_BLITEMS, "Backlog items", 5,
+                        "Number of backlog item descriptions to attach")
+        );
+
         configurationRequest.addField(new BooleanField(
                         CK_SHORT_MODE, "Short mode", false,
                         "Enable short mode? This strips down the Slack message to the bare minimum to take less space in the chat room. " +
