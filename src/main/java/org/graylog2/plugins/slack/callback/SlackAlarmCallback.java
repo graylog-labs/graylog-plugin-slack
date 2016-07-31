@@ -53,7 +53,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         );
 
         // Add attachments if requested.
-        final List<Message> backlog_items = getAlarmBacklog(result);
+        final List<Message> backlogItems = getAlarmBacklog(result);
 
         if(configuration.getBoolean(CK_ADD_ATTACHMENT)) {
             message.addAttachment(new SlackMessage.AttachmentField("Stream ID", stream.getId(), true));
@@ -64,20 +64,16 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
             if(count < 1){
                 count = 5; //Default items to show
             }
-            final int bl_size = backlog_items.size();
-            if(bl_size < count){
-                count = bl_size;
+            final int blSize = backlogItems.size();
+            if(blSize < count){
+                count = blSize;
             }
+            final StringBuilder sb = new StringBuilder();
             for (int i = 0; i < count; i++) {
-                final String msg = backlog_items.get(i).getMessage();
-                if(msg != null){
-                    if (msg.length() > 512) {
-                        message.addAttachment(new SlackMessage.AttachmentField("Backlog Summary", msg.substring(0, 512), false));
-                    } else {
-                        message.addAttachment(new SlackMessage.AttachmentField("Backlog Summary", msg, false));
-                    }
-                }
+                sb.append(backlogItems.get(i).getMessage()).append("\n\n");
             }
+            String attachmentName = "Backlog Items ("+Integer.toString(count)+")";
+            message.addAttachment(new SlackMessage.AttachmentField(attachmentName, sb.toString(), false));
         }
 
         try {
