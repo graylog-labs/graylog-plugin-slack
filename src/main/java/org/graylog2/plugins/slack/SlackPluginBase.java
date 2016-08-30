@@ -89,7 +89,7 @@ public class SlackPluginBase {
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                CK_GRAYLOG2_URL, "Socks Proxy", null,
+                CK_SOCKS_PROXY, "Socks Proxy", null,
                 "ProxyAddress:Port",
                 ConfigurationField.Optional.OPTIONAL)
         );
@@ -113,7 +113,7 @@ public class SlackPluginBase {
         if (!configuration.stringIsSet(CK_USER_NAME)) {
             throw new ConfigurationException(CK_USER_NAME + " is mandatory and must not be empty.");
         }
-        if (!configuration.stringIsSet(CK_SOCKS_PROXY)) {
+        if (configuration.stringIsSet(CK_SOCKS_PROXY)) {
         	try{
         		String[] url_and_port = configuration.getString(CK_SOCKS_PROXY).split(":");
         		InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));

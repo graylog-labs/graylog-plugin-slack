@@ -43,7 +43,7 @@ public class SlackClient {
         	if(!StringUtils.isEmpty(socksProxy)){
         		String[] url_and_port = socksProxy.split(":");
         		InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
-        		Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.0.0.1", 8080));
+        		Proxy proxy = new Proxy(Proxy.Type.HTTP, sockAddress);
         		conn = (HttpURLConnection) url.openConnection(proxy);
         	}else {
         		conn = (HttpURLConnection) url.openConnection();	
