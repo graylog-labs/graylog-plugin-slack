@@ -6,6 +6,8 @@ import com.google.common.collect.Maps;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackConfigurationException;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
+import org.graylog2.plugin.outputs.MessageOutputConfigurationException;
+import org.graylog2.plugins.slack.output.SlackMessageOutput;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -72,6 +74,11 @@ public class SlackAlarmCallbackTest {
     public void checkConfigurationFailsIfChannelDoesAcceptDirectMessages() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("channel", "@john"));
     }
+    
+    @Test
+    public void checkConfigurationWorksWithCorrectProxyAddress() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "127.0.0.1:1080"));
+    }
 
     @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
@@ -93,6 +100,32 @@ public class SlackAlarmCallbackTest {
         alarmCallback.initialize(validConfigurationWithValue("graylog2_url", "ftp://example.net"));
     }
 
+
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "Definitely$$Not#A!!URL"));
+    }
+
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressIsMissingAPort() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "127.0.0.1"));
+    }
+    
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressHasScheme() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "http://127.0.0.1"));
+    }
+    
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressHasTwoColons() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "vpn://127.0.0.1:8080"));
+    }
+    
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressHasWrongFormat() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "vpn://127.0.0.1"));
+    }
+    
     @Test
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),

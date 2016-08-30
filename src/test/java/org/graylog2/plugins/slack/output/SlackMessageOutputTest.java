@@ -59,7 +59,12 @@ public class SlackMessageOutputTest {
     public void checkConfigurationWorksWithCorrectDirectMessageNotations() throws MessageOutputConfigurationException {
         new SlackMessageOutput(null, validConfigurationWithValue("channel", "@john"));
     }
-
+    
+    @Test
+    public void checkConfigurationWorksWithCorrectProxyAddress() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "127.0.0.1:1080"));
+    }
+    
     @Test(expected = MessageOutputConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsInvalid() throws MessageOutputConfigurationException {
         new SlackMessageOutput(null, validConfigurationWithValue("icon_url", "Definitely$$Not#A!!URL"));
@@ -80,6 +85,31 @@ public class SlackMessageOutputTest {
         new SlackMessageOutput(null, validConfigurationWithValue("graylog2_url", "ftp://example.net"));
     }
 
+    @Test(expected = MessageOutputConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressIsInvalid() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "Definitely$$Not#A!!URL"));
+    }
+
+    @Test(expected = MessageOutputConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressIsMissingAPort() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "127.0.0.1"));
+    }
+    
+    @Test(expected = MessageOutputConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressHasScheme() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "http://127.0.0.1"));
+    }
+    
+    @Test(expected = MessageOutputConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressHasTwoColons() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "vpn://127.0.0.1:8080"));
+    }
+    
+    @Test(expected = MessageOutputConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressHasWrongFormat() throws MessageOutputConfigurationException {
+        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "vpn://127.0.0.1"));
+    }
+    
     private Configuration validConfigurationWithout(final String key) {
         return new Configuration(Maps.filterEntries(VALID_CONFIG_SOURCE, new Predicate<Map.Entry<String, Object>>() {
             @Override
