@@ -27,7 +27,7 @@ public class SlackClient {
 
     public SlackClient(Configuration configuration) {
         this.webhookUrl = configuration.getString(SlackPluginBase.CK_WEBHOOK_URL);
-        this.proxyURL = configuration.getString(SlackPluginBase.CK_PROXY_URL);
+        this.proxyURL = configuration.getString(SlackPluginBase.CK_PROXY_ADDRESS);
     }
     	
     public void send(SlackMessage message) throws SlackClientException {
