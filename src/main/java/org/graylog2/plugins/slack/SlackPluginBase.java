@@ -9,6 +9,8 @@ import org.graylog2.plugin.configuration.fields.ConfigurationField;
 import org.graylog2.plugin.configuration.fields.TextField;
 import org.graylog2.plugin.streams.Stream;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -30,6 +32,7 @@ public class SlackPluginBase {
     public static final String CK_ICON_URL = "icon_url";
     public static final String CK_ICON_EMOJI = "icon_emoji";
     public static final String CK_GRAYLOG2_URL = "graylog2_url";
+    public static final String CK_SOCKS_PROXY = "socks_proxy";
     public static final String CK_COLOR = "color";
 
     public static ConfigurationRequest configuration() {
@@ -81,9 +84,14 @@ public class SlackPluginBase {
                         ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                        CK_GRAYLOG2_URL, "Graylog URL", null,
-                        "URL to your Graylog web interface. Used to build links in alarm notification.",
-                        ConfigurationField.Optional.OPTIONAL)
+                CK_GRAYLOG2_URL, "Graylog URL", null,
+                "URL to your Graylog web interface. Used to build links in alarm notification.",
+                ConfigurationField.Optional.OPTIONAL)
+        );
+        configurationRequest.addField(new TextField(
+                CK_GRAYLOG2_URL, "Socks Proxy", null,
+                "ProxyAddress:Port",
+                ConfigurationField.Optional.OPTIONAL)
         );
 
         return configurationRequest;
@@ -104,6 +112,18 @@ public class SlackPluginBase {
 
         if (!configuration.stringIsSet(CK_USER_NAME)) {
             throw new ConfigurationException(CK_USER_NAME + " is mandatory and must not be empty.");
+        }
+        if (!configuration.stringIsSet(CK_SOCKS_PROXY)) {
+        	try{
+        		String[] url_and_port = configuration.getString(CK_SOCKS_PROXY).split(":");
+        		InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
+        		if (sockAddress.isUnresolved()) {
+        			throw new ConfigurationException("Couldn't resolve " + CK_SOCKS_PROXY +".");
+        		}
+        	} catch(Exception e) {
+        		throw new ConfigurationException("Couldn't parse " + CK_SOCKS_PROXY + " correctly.", e);
+        	}
+        	
         }
 
         // work around for "null" string bug in graylog-server v1.2
