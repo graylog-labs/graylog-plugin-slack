@@ -19,8 +19,8 @@ public class SlackClient {
 
     private final String webhookUrl;
 
-    public SlackClient(String webhookUrl) {
-        this.webhookUrl = webhookUrl;
+    public SlackClient(Configuration configuration) {
+        this.webhookUrl = configuration.getString(SlackPluginBase.CK_WEBHOOK_URL);
     }
 
     public void send(SlackMessage message) throws SlackClientException {

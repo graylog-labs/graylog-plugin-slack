@@ -43,7 +43,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
             throw new MessageOutputConfigurationException("Missing configuration: " + e.getMessage());
         }
 
-        this.client = new SlackClient(configuration.getString(CK_WEBHOOK_URL));
+        this.client = new SlackClient(configuration);
 
         running = true;
     }
