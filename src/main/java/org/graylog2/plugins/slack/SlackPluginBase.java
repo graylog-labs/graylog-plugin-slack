@@ -32,7 +32,7 @@ public class SlackPluginBase {
     public static final String CK_ICON_URL = "icon_url";
     public static final String CK_ICON_EMOJI = "icon_emoji";
     public static final String CK_GRAYLOG2_URL = "graylog2_url";
-    public static final String CK_SOCKS_PROXY = "socks_proxy";
+    public static final String CK_PROXY_URL = "proxy_url";
     public static final String CK_COLOR = "color";
 
     public static ConfigurationRequest configuration() {
@@ -89,8 +89,8 @@ public class SlackPluginBase {
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                CK_SOCKS_PROXY, "Socks Proxy", null,
-                "ProxyAddress:Port",
+                CK_PROXY_URL, "Proxy", null,
+                "Please insert the proxy information in the follwoing format: <ProxyAddress>:<Port>",
                 ConfigurationField.Optional.OPTIONAL)
         );
 
@@ -113,15 +113,15 @@ public class SlackPluginBase {
         if (!configuration.stringIsSet(CK_USER_NAME)) {
             throw new ConfigurationException(CK_USER_NAME + " is mandatory and must not be empty.");
         }
-        if (configuration.stringIsSet(CK_SOCKS_PROXY)) {
+        if (configuration.stringIsSet(CK_PROXY_URL)) {
         	try{
-        		String[] url_and_port = configuration.getString(CK_SOCKS_PROXY).split(":");
+        		String[] url_and_port = configuration.getString(CK_PROXY_URL).split(":");
         		InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
         		if (sockAddress.isUnresolved()) {
-        			throw new ConfigurationException("Couldn't resolve " + CK_SOCKS_PROXY +".");
+        			throw new ConfigurationException("Couldn't resolve " + CK_PROXY_URL +".");
         		}
         	} catch(Exception e) {
-        		throw new ConfigurationException("Couldn't parse " + CK_SOCKS_PROXY + " correctly.", e);
+        		throw new ConfigurationException("Couldn't parse " + CK_PROXY_URL + " correctly.", e);
         	}
         	
         }

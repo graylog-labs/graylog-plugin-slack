@@ -23,11 +23,11 @@ public class SlackClient {
     private static final Logger LOG = LoggerFactory.getLogger(SlackClient.class);
 
     private final String webhookUrl;
-    private final String socksProxy;
+    private final String proxyURL;
 
     public SlackClient(Configuration configuration) {
         this.webhookUrl = configuration.getString(SlackPluginBase.CK_WEBHOOK_URL);
-        this.socksProxy = configuration.getString(SlackPluginBase.CK_SOCKS_PROXY);
+        this.proxyURL = configuration.getString(SlackPluginBase.CK_PROXY_URL);
     }
     	
     public void send(SlackMessage message) throws SlackClientException {
@@ -40,8 +40,8 @@ public class SlackClient {
 
         final HttpURLConnection conn;
         try {
-        	if(!StringUtils.isEmpty(socksProxy)){
-        		String[] url_and_port = socksProxy.split(":");
+        	if(!StringUtils.isEmpty(proxyURL)){
+        		String[] url_and_port = proxyURL.split(":");
         		InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
         		Proxy proxy = new Proxy(Proxy.Type.HTTP, sockAddress);
         		conn = (HttpURLConnection) url.openConnection(proxy);
