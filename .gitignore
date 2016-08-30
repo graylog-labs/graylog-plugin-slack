@@ -3,3 +3,7 @@ target/
 *.iml
 *.iws
 *.ipr
+/.settings
+/.classpath
+/.project
+/release.properties
