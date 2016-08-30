@@ -2,6 +2,9 @@ package org.graylog2.plugins.slack;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
+
+import org.apache.commons.lang3.StringUtils;
+import org.graylog2.plugin.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +13,9 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 
 public class SlackClient {
@@ -18,11 +23,13 @@ public class SlackClient {
     private static final Logger LOG = LoggerFactory.getLogger(SlackClient.class);
 
     private final String webhookUrl;
+    private final String socksProxy;
 
     public SlackClient(Configuration configuration) {
         this.webhookUrl = configuration.getString(SlackPluginBase.CK_WEBHOOK_URL);
+        this.socksProxy = configuration.getString(SlackPluginBase.CK_SOCKS_PROXY);
     }
-
+    	
     public void send(SlackMessage message) throws SlackClientException {
         final URL url;
         try {
@@ -33,7 +40,14 @@ public class SlackClient {
 
         final HttpURLConnection conn;
         try {
-            conn = (HttpURLConnection) url.openConnection();
+        	if(!StringUtils.isEmpty(socksProxy)){
+        		String[] url_and_port = socksProxy.split(":");
+        		InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
+        		Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.0.0.1", 8080));
+        		conn = (HttpURLConnection) url.openConnection(proxy);
+        	}else {
+        		conn = (HttpURLConnection) url.openConnection();	
+        	}
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
