@@ -10,7 +10,6 @@ import org.graylog2.plugin.configuration.fields.TextField;
 import org.graylog2.plugin.streams.Stream;
 
 import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.net.URI;
 import java.net.URISyntaxException;
 
