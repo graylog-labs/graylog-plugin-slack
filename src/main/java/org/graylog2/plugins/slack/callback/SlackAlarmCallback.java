@@ -56,11 +56,12 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         // Add custom fields
         if(!configuration.getString("ck_show_fields").isEmpty()){
 
-            MessageSummary msgSum = result.getMatchingMessages().get(0);
             String[] fields = configuration.getString("ck_show_fields").split(",");
 
-            for (String f : fields){
-                message.addAttachment(new SlackMessage.AttachmentField(f, msgSum.getField(f).toString(), false));
+            for (MessageSummary msgSum : result.getMatchingMessages()) {
+                for (String f : fields) {
+                    message.addAttachment(new SlackMessage.AttachmentField(f, msgSum.getField(f).toString(), false));
+                }
             }
         }
 
