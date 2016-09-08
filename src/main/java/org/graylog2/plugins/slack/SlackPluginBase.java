@@ -31,6 +31,7 @@ public class SlackPluginBase {
     public static final String CK_ICON_EMOJI = "icon_emoji";
     public static final String CK_GRAYLOG2_URL = "graylog2_url";
     public static final String CK_COLOR = "color";
+    public static final String CK_FIELDS = "custom_fields";
 
     public static ConfigurationRequest configuration() {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
@@ -84,6 +85,11 @@ public class SlackPluginBase {
                         CK_GRAYLOG2_URL, "Graylog URL", null,
                         "URL to your Graylog web interface. Used to build links in alarm notification.",
                         ConfigurationField.Optional.OPTIONAL)
+        );
+        configurationRequest.addField(new TextField(
+                CK_FIELDS, "Custom fields", null,
+                "Add fields into alert (field1, field2...)",
+                ConfigurationField.Optional.OPTIONAL)
         );
 
         return configurationRequest;

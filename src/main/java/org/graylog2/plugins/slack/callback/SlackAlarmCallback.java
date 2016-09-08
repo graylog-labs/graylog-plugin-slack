@@ -1,5 +1,6 @@
 package org.graylog2.plugins.slack.callback;
 
+import org.graylog2.plugin.MessageSummary;
 import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
@@ -50,6 +51,17 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
             message.addAttachment(new SlackMessage.AttachmentField("Stream ID", stream.getId(), true));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Title", stream.getTitle(), false));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
+        }
+
+        // Add custom fields
+        if(!configuration.getString("ck_show_fields").isEmpty()){
+
+            MessageSummary msgSum = result.getMatchingMessages().get(0);
+            String[] fields = configuration.getString("ck_show_fields").split(",");
+
+            for (String f : fields){
+                message.addAttachment(new SlackMessage.AttachmentField(f, msgSum.getField(f).toString(), false));
+            }
         }
 
         try {
