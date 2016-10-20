@@ -12,13 +12,20 @@ import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
 import org.graylog2.plugin.configuration.ConfigurationRequest;
 import org.graylog2.plugin.streams.Stream;
+import org.graylog2.plugins.slack.SlackClient;
+import org.graylog2.plugins.slack.SlackMessage;
+import org.graylog2.plugins.slack.SlackPluginBase;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback {
 
+    public static final String DELIMITER = " | ";
     private Configuration configuration;
 
     @Override
@@ -54,14 +61,22 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         }
 
         // Add custom fields
-        if(!configuration.getString("ck_show_fields").isEmpty()){
+        String customFields = configuration.getString(SlackPluginBase.CK_FIELDS);
+        if(!customFields.isEmpty()){
 
-            String[] fields = configuration.getString("ck_show_fields").split(",");
+            String[] fields = customFields.split(",");
 
-            for (MessageSummary msgSum : result.getMatchingMessages()) {
-                for (String f : fields) {
-                    message.addAttachment(new SlackMessage.AttachmentField(f, msgSum.getField(f).toString(), false));
-                }
+            for (MessageSummary messageSummary : result.getMatchingMessages()) {
+
+                String value = Arrays
+                        .stream(fields)
+                        .map(field -> Optional.ofNullable(messageSummary.getField(field)).map(Object::toString).orElse("???"))
+                        .collect(Collectors.joining(DELIMITER));
+
+                String title = String.join(DELIMITER, fields);
+
+                SlackMessage.AttachmentField attachment = new SlackMessage.AttachmentField(title, value, false);
+                message.addAttachment(attachment);
             }
         }
 
