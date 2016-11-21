@@ -15,14 +15,16 @@ import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback {
-
-    public static final String DELIMITER = " | ";
+    private static final String DELIMITER = " | ";
     private Configuration configuration;
 
     @Override
@@ -75,21 +77,19 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         }
 
         // Add custom fields
-        String customFields = configuration.getString(SlackPluginBase.CK_FIELDS);
-        if(!customFields.isEmpty()){
-
-            String[] fields = customFields.split(",");
-
+        final String customFields = configuration.getString(SlackPluginBase.CK_FIELDS);
+        if (!isNullOrEmpty(customFields)) {
+            final String[] fields = customFields.split(",");
             for (MessageSummary messageSummary : result.getMatchingMessages()) {
-
-                String value = Arrays
-                        .stream(fields)
-                        .map(field -> Optional.ofNullable(messageSummary.getField(field)).map(Object::toString).orElse("???"))
+                final String value = Arrays.stream(fields)
+                        .map(String::trim)
+                        .map(messageSummary::getField)
+                        .map(String::valueOf)
                         .collect(Collectors.joining(DELIMITER));
 
-                String title = String.join(DELIMITER, fields);
+                final String title = String.join(DELIMITER, (CharSequence[]) fields);
 
-                SlackMessage.AttachmentField attachment = new SlackMessage.AttachmentField(title, value, false);
+                final SlackMessage.AttachmentField attachment = new SlackMessage.AttachmentField(title, value, false);
                 message.addAttachment(attachment);
             }
         }
