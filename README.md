@@ -60,6 +60,19 @@ Create a "Slack alarm callback" on the "Manage alerts" page of your stream. Ente
 
 The same applies for message outputs which you can configure in *Stream* - > *Manage Outputs*.
 
+## Troubleshooting
+
+### HTTPS connection fails
+
+If the Java runtime environment and the included SSL certificate trust store is too old, HTTPS connections to Slack might fail with the following error message:
+
+```text
+Caused by: javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+```
+
+In this case, add the Slack SSL certificate manually to Java's trust store similar to the process described in the [Graylog documentation](http://docs.graylog.org/en/2.1/pages/configuration/https.html#adding-a-self-signed-certificate-to-the-jvm-trust-store).
+
+
 ## Build
 
 This project is using Maven and requires Java 8 or higher.
