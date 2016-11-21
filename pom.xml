@@ -6,7 +6,7 @@
 
     <groupId>org.graylog.plugins</groupId>
     <artifactId>graylog-plugin-slack</artifactId>
-    <version>2.2.3-SNAPSHOT</version>
+    <version>2.3.0</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
