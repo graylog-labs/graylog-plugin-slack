@@ -60,8 +60,16 @@ public class SlackClient {
             writer.write(message.getJsonString());
             writer.flush();
 
-            if (conn.getResponseCode() != 200) {
-                throw new SlackClientException("Unexpected HTTP response status " + conn.getResponseCode());
+            final int responseCode = conn.getResponseCode();
+            if (responseCode != 200) {
+                if(LOG.isDebugEnabled()){
+                    try (final InputStream responseStream = conn.getInputStream()) {
+                        final byte[] responseBytes = ByteStreams.toByteArray(responseStream);
+                        final String response = new String(responseBytes, Charsets.UTF_8);
+                        LOG.debug("Received HTTP response body:\n{}", response);
+                    }
+                }
+                throw new SlackClientException("Unexpected HTTP response status " + responseCode);
             }
         } catch (IOException e) {
             throw new SlackClientException("Could not POST to Slack API", e);
