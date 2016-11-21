@@ -26,6 +26,7 @@ public class SlackPluginBase {
     public static final String CK_GRAYLOG2_URL = "graylog2_url";
     public static final String CK_PROXY_ADDRESS = "proxy_address";
     public static final String CK_COLOR = "color";
+    public static final String CK_FIELDS = "custom_fields";
     public static final String CK_ADD_BLITEMS = "backlog_items";
 
     protected static ConfigurationRequest configuration() {
@@ -89,6 +90,11 @@ public class SlackPluginBase {
         configurationRequest.addField(new TextField(
                 CK_PROXY_ADDRESS, "Proxy", null,
                 "Please insert the proxy information in the follwoing format: <ProxyAddress>:<Port>",
+                ConfigurationField.Optional.OPTIONAL)
+        );
+        configurationRequest.addField(new TextField(
+                CK_FIELDS, "Custom fields", null,
+                "Add fields into alert (field1, field2...)",
                 ConfigurationField.Optional.OPTIONAL)
         );
 

@@ -15,14 +15,14 @@ import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback {
 
+    public static final String DELIMITER = " | ";
     private Configuration configuration;
 
     @Override
@@ -72,6 +72,26 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
             }
             String attachmentName = "Backlog Items (" + Integer.toString(count) + ")";
             message.addAttachment(new SlackMessage.AttachmentField(attachmentName, sb.toString(), false));
+        }
+
+        // Add custom fields
+        String customFields = configuration.getString(SlackPluginBase.CK_FIELDS);
+        if(!customFields.isEmpty()){
+
+            String[] fields = customFields.split(",");
+
+            for (MessageSummary messageSummary : result.getMatchingMessages()) {
+
+                String value = Arrays
+                        .stream(fields)
+                        .map(field -> Optional.ofNullable(messageSummary.getField(field)).map(Object::toString).orElse("???"))
+                        .collect(Collectors.joining(DELIMITER));
+
+                String title = String.join(DELIMITER, fields);
+
+                SlackMessage.AttachmentField attachment = new SlackMessage.AttachmentField(title, value, false);
+                message.addAttachment(attachment);
+            }
         }
 
         try {
