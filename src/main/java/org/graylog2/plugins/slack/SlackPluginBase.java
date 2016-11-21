@@ -1,6 +1,8 @@
 package org.graylog2.plugins.slack;
 
 import com.google.common.base.CharMatcher;
+
+import org.apache.commons.lang3.StringUtils;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
 import org.graylog2.plugin.configuration.ConfigurationRequest;
@@ -10,6 +12,7 @@ import org.graylog2.plugin.configuration.fields.TextField;
 import org.graylog2.plugin.configuration.fields.NumberField;
 import org.graylog2.plugin.streams.Stream;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -31,6 +34,7 @@ public class SlackPluginBase {
     public static final String CK_ICON_URL = "icon_url";
     public static final String CK_ICON_EMOJI = "icon_emoji";
     public static final String CK_GRAYLOG2_URL = "graylog2_url";
+    public static final String CK_PROXY_ADDRESS = "proxy_address";
     public static final String CK_COLOR = "color";
     public static final String CK_ADD_BLITEMS = "backlog_items";
 
@@ -88,9 +92,14 @@ public class SlackPluginBase {
                         ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                        CK_GRAYLOG2_URL, "Graylog URL", null,
-                        "URL to your Graylog web interface. Used to build links in alarm notification.",
-                        ConfigurationField.Optional.OPTIONAL)
+                CK_GRAYLOG2_URL, "Graylog URL", null,
+                "URL to your Graylog web interface. Used to build links in alarm notification.",
+                ConfigurationField.Optional.OPTIONAL)
+        );
+        configurationRequest.addField(new TextField(
+                CK_PROXY_ADDRESS, "Proxy", null,
+                "Please insert the proxy information in the follwoing format: <ProxyAddress>:<Port>",
+                ConfigurationField.Optional.OPTIONAL)
         );
 
         return configurationRequest;
@@ -111,6 +120,25 @@ public class SlackPluginBase {
 
         if (!configuration.stringIsSet(CK_USER_NAME)) {
             throw new ConfigurationException(CK_USER_NAME + " is mandatory and must not be empty.");
+        }
+        if (configuration.stringIsSet(CK_PROXY_ADDRESS)) {
+        	try{
+        		String url_and_port_string = configuration.getString(CK_PROXY_ADDRESS);
+        		if(url_and_port_string.startsWith("http")){
+        			throw new ConfigurationException("Couldn't parse " + CK_PROXY_ADDRESS +" correctly, please remove scheme information (e.g. http/https).");
+        		}
+        		if(StringUtils.countMatches(url_and_port_string, ":") != 1){
+        			throw new ConfigurationException("Couldn't parse " + CK_PROXY_ADDRESS +" correctly, please make sure ':' is only appearing once in your proxy address.");
+        		}
+        		String[] url_and_port = url_and_port_string.split(":");
+        		InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
+        		if (sockAddress.isUnresolved()) {
+        			throw new ConfigurationException("Couldn't resolve " + CK_PROXY_ADDRESS +".");
+        		}
+        	} catch(Exception e) {
+        		throw new ConfigurationException("Couldn't parse " + CK_PROXY_ADDRESS + " correctly.", e);
+        	}
+        	
         }
 
         // work around for "null" string bug in graylog-server v1.2

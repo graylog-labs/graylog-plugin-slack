@@ -40,7 +40,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
 
     @Override
     public void call(Stream stream, AlertCondition.CheckResult result) throws AlarmCallbackException {
-        final SlackClient client = new SlackClient(configuration.getString(CK_WEBHOOK_URL));
+        final SlackClient client = new SlackClient(configuration);
 
         SlackMessage message = new SlackMessage(
                 configuration.getString(CK_COLOR),
