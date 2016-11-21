@@ -19,12 +19,12 @@ import org.joda.time.format.DateTimeFormat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackMessageOutput extends SlackPluginBase implements MessageOutput {
-
-    private boolean running;
+    private AtomicBoolean running = new AtomicBoolean(false);
 
     private final Configuration configuration;
     private final Stream stream;
@@ -45,17 +45,17 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
 
         this.client = new SlackClient(configuration);
 
-        running = true;
+        running.set(true);
     }
 
     @Override
     public void stop() {
-        this.running = false;
+        running.set(false);
     }
 
     @Override
     public boolean isRunning() {
-        return running;
+        return running.get();
     }
 
     @Override
@@ -71,7 +71,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         );
 
         // Add attachments if requested.
-        if(!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_ATTACHMENT)) {
+        if (!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_ATTACHMENT)) {
             slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
             slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
 
@@ -93,33 +93,21 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
     }
 
     public String buildMessage(Stream stream, Message msg) {
-        if(configuration.getBoolean(CK_SHORT_MODE)) {
-            return new StringBuilder()
-                    .append(msg.getTimestamp().toDateTime(DateTimeZone.getDefault()).toString(DateTimeFormat.shortTime()))
-                    .append(": ")
-                    .append(msg.getMessage())
-                    .toString();
+        if (configuration.getBoolean(CK_SHORT_MODE)) {
+            return msg.getTimestamp().toDateTime(DateTimeZone.getDefault()).toString(DateTimeFormat.shortTime()) + ": " + msg.getMessage();
         }
 
         String graylogUri = configuration.getString(CK_GRAYLOG2_URL);
         boolean notifyChannel = configuration.getBoolean(CK_NOTIFY_CHANNEL);
 
         String titleLink;
-        if (isSet(graylogUri)) {
+        if (!isNullOrEmpty(graylogUri)) {
             titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
         } else {
             titleLink = "_" + stream.getTitle() + "_";
         }
 
-        final StringBuilder message = new StringBuilder(notifyChannel ? "@channel " : "");
-        message.append("*New message in Graylog stream ").append(titleLink).append("*:\n").append("> ").append(msg.getMessage());
-
-        return message.toString();
-    }
-
-    private final boolean isSet(String x) {
-        // Bug in graylog-server v1.2: Empty values are stored as "null" String. This is a dirty workaround.
-        return !isNullOrEmpty(x) && !x.equals("null");
+        return notifyChannel ? "@channel " : "" + "*New message in Graylog stream " + titleLink + "*:\n" + "> " + msg.getMessage();
     }
 
     @Override

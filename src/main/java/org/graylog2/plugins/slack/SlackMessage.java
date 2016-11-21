@@ -43,20 +43,20 @@ public class SlackMessage {
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
         final Map<String, Object> params = new HashMap<String, Object>(){{
             put("channel", channel);
-            put("text", message.toString());
+            put("text", message);
             put("link_names", linkNames ? "1" : "0");
             put("parse", "none");
         }};
 
-        if (isSet(userName)) {
+        if (!isNullOrEmpty(userName)) {
             params.put("username", userName);
         }
 
-        if (isSet(iconUrl)) {
+        if (!isNullOrEmpty(iconUrl)) {
             params.put("icon_url", iconUrl);
         }
 
-        if (isSet(iconEmoji)) {
+        if (!isNullOrEmpty(iconEmoji)) {
             params.put("icon_emoji", ensureEmojiSyntax(iconEmoji));
         }
 
@@ -89,11 +89,6 @@ public class SlackMessage {
         }
 
         return emoji;
-    }
-
-    private final boolean isSet(String x) {
-        // Bug in graylog-server v1.2: Empty values are stored as "null" String. This is a dirty workaround.
-        return !isNullOrEmpty(x) && !x.equals("null");
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)

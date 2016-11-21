@@ -53,24 +53,24 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         // Add attachments if requested.
         final List<Message> backlogItems = getAlarmBacklog(result);
 
-        if(configuration.getBoolean(CK_ADD_ATTACHMENT)) {
+        if (configuration.getBoolean(CK_ADD_ATTACHMENT)) {
             message.addAttachment(new SlackMessage.AttachmentField("Stream ID", stream.getId(), true));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Title", stream.getTitle(), false));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-            
+
             int count = configuration.getInt(CK_ADD_BLITEMS);
-            if(count < 1){
+            if (count < 1) {
                 count = 5; //Default items to show
             }
             final int blSize = backlogItems.size();
-            if(blSize < count){
+            if (blSize < count) {
                 count = blSize;
             }
             final StringBuilder sb = new StringBuilder();
             for (int i = 0; i < count; i++) {
                 sb.append(backlogItems.get(i).getMessage()).append("\n\n");
             }
-            String attachmentName = "Backlog Items ("+Integer.toString(count)+")";
+            String attachmentName = "Backlog Items (" + Integer.toString(count) + ")";
             message.addAttachment(new SlackMessage.AttachmentField(attachmentName, sb.toString(), false));
         }
 
@@ -107,21 +107,13 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         boolean notifyChannel = configuration.getBoolean(CK_NOTIFY_CHANNEL);
 
         String titleLink;
-        if (isSet(graylogUri)) {
+        if (!isNullOrEmpty(graylogUri)) {
             titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
         } else {
             titleLink = "_" + stream.getTitle() + "_";
         }
 
-        final StringBuilder message = new StringBuilder(notifyChannel ? "@channel " : "");
-        message.append("*Alert for Graylog stream ").append(titleLink).append("*:\n").append("> ").append(result.getResultDescription());
-
-        return message.toString();
-    }
-
-    private final boolean isSet(String x) {
-        // Bug in graylog-server v1.2: Empty values are stored as "null" String. This is a dirty workaround.
-        return !isNullOrEmpty(x) && !x.equals("null");
+        return notifyChannel ? "@channel " : "" + "*Alert for Graylog stream " + titleLink + "*:\n" + "> " + result.getResultDescription();
     }
 
     @Override
