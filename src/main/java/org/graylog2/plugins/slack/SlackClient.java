@@ -2,7 +2,6 @@ package org.graylog2.plugins.slack;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
-
 import org.apache.commons.lang3.StringUtils;
 import org.graylog2.plugin.configuration.Configuration;
 import org.slf4j.Logger;
@@ -29,7 +28,7 @@ public class SlackClient {
         this.webhookUrl = configuration.getString(SlackPluginBase.CK_WEBHOOK_URL);
         this.proxyURL = configuration.getString(SlackPluginBase.CK_PROXY_ADDRESS);
     }
-    	
+
     public void send(SlackMessage message) throws SlackClientException {
         final URL url;
         try {
@@ -40,14 +39,14 @@ public class SlackClient {
 
         final HttpURLConnection conn;
         try {
-        	if(!StringUtils.isEmpty(proxyURL)){
-        		String[] url_and_port = proxyURL.split(":");
-        		InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
-        		Proxy proxy = new Proxy(Proxy.Type.HTTP, sockAddress);
-        		conn = (HttpURLConnection) url.openConnection(proxy);
-        	}else {
-        		conn = (HttpURLConnection) url.openConnection();	
-        	}
+            if (!StringUtils.isEmpty(proxyURL)) {
+                String[] url_and_port = proxyURL.split(":");
+                InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, sockAddress);
+                conn = (HttpURLConnection) url.openConnection(proxy);
+            } else {
+                conn = (HttpURLConnection) url.openConnection();
+            }
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
