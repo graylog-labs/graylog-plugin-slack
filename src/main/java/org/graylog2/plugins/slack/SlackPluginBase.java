@@ -108,10 +108,6 @@ public class SlackPluginBase {
             throw new ConfigurationException(CK_COLOR + " is mandatory and must not be empty.");
         }
 
-        if (!configuration.stringIsSet(CK_USER_NAME)) {
-            throw new ConfigurationException(CK_USER_NAME + " is mandatory and must not be empty.");
-        }
-
         checkUri(configuration, CK_PROXY_ADDRESS);
         checkUri(configuration, CK_ICON_URL);
         checkUri(configuration, CK_GRAYLOG2_URL);
