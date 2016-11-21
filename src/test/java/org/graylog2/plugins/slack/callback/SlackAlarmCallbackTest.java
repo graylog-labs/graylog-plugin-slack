@@ -72,6 +72,16 @@ public class SlackAlarmCallbackTest {
     public void checkConfigurationFailsIfChannelDoesAcceptDirectMessages() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("channel", "@john"));
     }
+    
+    @Test
+    public void checkConfigurationWorksWithCorrectProxyAddress() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "https://127.0.0.1:1080"));
+    }
+
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressHasWrongScheme() throws AlarmCallbackConfigurationException, ConfigurationException {
+        alarmCallback.initialize(validConfigurationWithValue("proxy_address", "vpn://127.0.0.1"));
+    }
 
     @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfIconUrlIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
@@ -93,6 +103,21 @@ public class SlackAlarmCallbackTest {
         alarmCallback.initialize(validConfigurationWithValue("graylog2_url", "ftp://example.net"));
     }
 
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "Definitely$$Not#A!!URL"));
+    }
+
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressIsMissingAPort() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "127.0.0.1"));
+    }
+    
+    @Test(expected = AlarmCallbackConfigurationException.class)
+    public void checkConfigurationFailsIfProxyAddressHasWrongFormat() throws AlarmCallbackConfigurationException, ConfigurationException {
+    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "vpn://127.0.0.1"));
+    }
+    
     @Test
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),

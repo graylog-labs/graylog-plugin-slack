@@ -2,6 +2,8 @@ package org.graylog2.plugins.slack;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
+import org.apache.commons.lang3.StringUtils;
+import org.graylog2.plugin.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,7 +12,11 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 public class SlackClient {
@@ -18,9 +24,11 @@ public class SlackClient {
     private static final Logger LOG = LoggerFactory.getLogger(SlackClient.class);
 
     private final String webhookUrl;
+    private final String proxyURL;
 
-    public SlackClient(String webhookUrl) {
-        this.webhookUrl = webhookUrl;
+    public SlackClient(Configuration configuration) {
+        this.webhookUrl = configuration.getString(SlackPluginBase.CK_WEBHOOK_URL);
+        this.proxyURL = configuration.getString(SlackPluginBase.CK_PROXY_ADDRESS);
     }
 
     public void send(SlackMessage message) throws SlackClientException {
@@ -33,11 +41,18 @@ public class SlackClient {
 
         final HttpURLConnection conn;
         try {
-            conn = (HttpURLConnection) url.openConnection();
+            if (!StringUtils.isEmpty(proxyURL)) {
+                final URI proxyUri = new URI(proxyURL);
+                InetSocketAddress sockAddress = new InetSocketAddress(proxyUri.getHost(), proxyUri.getPort());
+                final Proxy proxy = new Proxy(Proxy.Type.HTTP, sockAddress);
+                conn = (HttpURLConnection) url.openConnection(proxy);
+            } else {
+                conn = (HttpURLConnection) url.openConnection();
+            }
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-        } catch (IOException e) {
+        } catch (URISyntaxException | IOException e) {
             throw new SlackClientException("Could not open connection to Slack API", e);
         }
 
@@ -45,8 +60,16 @@ public class SlackClient {
             writer.write(message.getJsonString());
             writer.flush();
 
-            if (conn.getResponseCode() != 200) {
-                throw new SlackClientException("Unexpected HTTP response status " + conn.getResponseCode());
+            final int responseCode = conn.getResponseCode();
+            if (responseCode != 200) {
+                if(LOG.isDebugEnabled()){
+                    try (final InputStream responseStream = conn.getInputStream()) {
+                        final byte[] responseBytes = ByteStreams.toByteArray(responseStream);
+                        final String response = new String(responseBytes, Charsets.UTF_8);
+                        LOG.debug("Received HTTP response body:\n{}", response);
+                    }
+                }
+                throw new SlackClientException("Unexpected HTTP response status " + responseCode);
             }
         } catch (IOException e) {
             throw new SlackClientException("Could not POST to Slack API", e);
