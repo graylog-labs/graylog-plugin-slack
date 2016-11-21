@@ -1,7 +1,5 @@
 package org.graylog2.plugins.slack;
 
-import com.google.common.base.CharMatcher;
-import org.apache.commons.lang3.StringUtils;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
 import org.graylog2.plugin.configuration.ConfigurationRequest;
@@ -11,18 +9,10 @@ import org.graylog2.plugin.configuration.fields.NumberField;
 import org.graylog2.plugin.configuration.fields.TextField;
 import org.graylog2.plugin.streams.Stream;
 
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 public class SlackPluginBase {
-
-    private static final CharMatcher NAME_MATCHER = CharMatcher.inRange('a', 'z')
-            .or(CharMatcher.inRange('A', 'Z'))
-            .or(CharMatcher.inRange('0', '9'))
-            .or(CharMatcher.anyOf("_-#@"))
-            .precomputed();
-
     public static final String CK_WEBHOOK_URL = "webhook_url";
     public static final String CK_CHANNEL = "channel";
     public static final String CK_USER_NAME = "user_name";
@@ -37,7 +27,7 @@ public class SlackPluginBase {
     public static final String CK_COLOR = "color";
     public static final String CK_ADD_BLITEMS = "backlog_items";
 
-    public static ConfigurationRequest configuration() {
+    protected static ConfigurationRequest configuration() {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
 
         configurationRequest.addField(new TextField(
@@ -104,7 +94,7 @@ public class SlackPluginBase {
         return configurationRequest;
     }
 
-    public static void checkConfiguration(Configuration configuration) throws ConfigurationException {
+    protected static void checkConfiguration(Configuration configuration) throws ConfigurationException {
         if (!configuration.stringIsSet(CK_WEBHOOK_URL)) {
             throw new ConfigurationException(CK_WEBHOOK_URL + " is mandatory and must not be empty.");
         }
@@ -122,22 +112,14 @@ public class SlackPluginBase {
         }
         if (configuration.stringIsSet(CK_PROXY_ADDRESS)) {
             try {
-                String url_and_port_string = configuration.getString(CK_PROXY_ADDRESS);
-                if (url_and_port_string.startsWith("http")) {
-                    throw new ConfigurationException("Couldn't parse " + CK_PROXY_ADDRESS + " correctly, please remove scheme information (e.g. http/https).");
-                }
-                if (StringUtils.countMatches(url_and_port_string, ":") != 1) {
-                    throw new ConfigurationException("Couldn't parse " + CK_PROXY_ADDRESS + " correctly, please make sure ':' is only appearing once in your proxy address.");
-                }
-                String[] url_and_port = url_and_port_string.split(":");
-                InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
-                if (sockAddress.isUnresolved()) {
-                    throw new ConfigurationException("Couldn't resolve " + CK_PROXY_ADDRESS + ".");
+                final String proxyAddress = configuration.getString(CK_PROXY_ADDRESS);
+                final URI proxyUri = new URI(proxyAddress);
+                if (!"http".equals(proxyUri.getScheme()) && !"https".equals(proxyUri.getScheme())) {
+                    throw new ConfigurationException(CK_PROXY_ADDRESS + " must be a valid HTTP or HTTPS URL.");
                 }
             } catch (Exception e) {
                 throw new ConfigurationException("Couldn't parse " + CK_PROXY_ADDRESS + " correctly.", e);
             }
-
         }
 
         // work around for "null" string bug in graylog-server v1.2

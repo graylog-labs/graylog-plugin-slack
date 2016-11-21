@@ -62,7 +62,7 @@ public class SlackMessageOutputTest {
     
     @Test
     public void checkConfigurationWorksWithCorrectProxyAddress() throws MessageOutputConfigurationException {
-        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "127.0.0.1:1080"));
+        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "http://127.0.0.1:1080"));
     }
     
     @Test(expected = MessageOutputConfigurationException.class)
@@ -93,16 +93,6 @@ public class SlackMessageOutputTest {
     @Test(expected = MessageOutputConfigurationException.class)
     public void checkConfigurationFailsIfProxyAddressIsMissingAPort() throws MessageOutputConfigurationException {
         new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "127.0.0.1"));
-    }
-    
-    @Test(expected = MessageOutputConfigurationException.class)
-    public void checkConfigurationFailsIfProxyAddressHasScheme() throws MessageOutputConfigurationException {
-        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "http://127.0.0.1"));
-    }
-    
-    @Test(expected = MessageOutputConfigurationException.class)
-    public void checkConfigurationFailsIfProxyAddressHasTwoColons() throws MessageOutputConfigurationException {
-        new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "vpn://127.0.0.1:8080"));
     }
     
     @Test(expected = MessageOutputConfigurationException.class)

@@ -2,20 +2,20 @@ package org.graylog2.plugins.slack.output;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import org.graylog2.plugins.slack.SlackClient;
-import org.graylog2.plugins.slack.SlackMessage;
-import org.graylog2.plugins.slack.SlackPluginBase;
 import org.graylog2.plugin.Message;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
 import org.graylog2.plugin.configuration.ConfigurationRequest;
+import org.graylog2.plugin.inputs.annotations.ConfigClass;
 import org.graylog2.plugin.inputs.annotations.FactoryClass;
 import org.graylog2.plugin.outputs.MessageOutput;
 import org.graylog2.plugin.outputs.MessageOutputConfigurationException;
 import org.graylog2.plugin.streams.Stream;
+import org.graylog2.plugins.slack.SlackClient;
+import org.graylog2.plugins.slack.SlackMessage;
+import org.graylog2.plugins.slack.SlackPluginBase;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 import java.util.List;
 import java.util.Map;
@@ -145,6 +145,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         Descriptor getDescriptor();
     }
 
+    @ConfigClass
     public static class Config extends MessageOutput.Config {
         @Override
         public ConfigurationRequest getRequestedConfiguration() {

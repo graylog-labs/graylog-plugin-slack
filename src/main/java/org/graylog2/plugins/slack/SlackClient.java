@@ -15,6 +15,8 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 public class SlackClient {
@@ -40,9 +42,9 @@ public class SlackClient {
         final HttpURLConnection conn;
         try {
             if (!StringUtils.isEmpty(proxyURL)) {
-                String[] url_and_port = proxyURL.split(":");
-                InetSocketAddress sockAddress = new InetSocketAddress(url_and_port[0], Integer.valueOf(url_and_port[1]));
-                Proxy proxy = new Proxy(Proxy.Type.HTTP, sockAddress);
+                final URI proxyUri = new URI(proxyURL);
+                InetSocketAddress sockAddress = new InetSocketAddress(proxyUri.getHost(), proxyUri.getPort());
+                final Proxy proxy = new Proxy(Proxy.Type.HTTP, sockAddress);
                 conn = (HttpURLConnection) url.openConnection(proxy);
             } else {
                 conn = (HttpURLConnection) url.openConnection();
@@ -50,7 +52,7 @@ public class SlackClient {
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
-        } catch (IOException e) {
+        } catch (URISyntaxException | IOException e) {
             throw new SlackClientException("Could not open connection to Slack API", e);
         }
 
