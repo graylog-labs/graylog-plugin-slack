@@ -46,7 +46,7 @@ Restart `graylog-server` and you are done.
 
 #### Step 1: Create Slack Incoming Webhook
 
-Create a new Slack Incoming Webhook (https://<organization>.slack.com/services/new/incoming-webhook) and copy the URL it will present to you. It will ask you to select a Slack channel but you can override it in the plugin configuration later.
+Create a [new Slack Incoming Webhook](https://<organization>.slack.com/services/new/incoming-webhook) and copy the URL it will present to you. It will ask you to select a Slack channel but you can override it in the plugin configuration later.
 
 ### For Mattermost:
 
