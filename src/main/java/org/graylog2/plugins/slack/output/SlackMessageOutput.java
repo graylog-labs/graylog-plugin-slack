@@ -107,7 +107,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
             titleLink = "_" + stream.getTitle() + "_";
         }
 
-        return notifyChannel ? "@channel " : "" + "*New message in Graylog stream " + titleLink + "*:\n" + "> " + msg.getMessage();
+        return (notifyChannel ? "@channel " : "") + "*New message in Graylog stream " + titleLink + "*:\n" + "> " + msg.getMessage();
     }
 
     @Override
