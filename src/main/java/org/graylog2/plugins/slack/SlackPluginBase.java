@@ -144,4 +144,12 @@ public class SlackPluginBase {
         return baseUrl + "streams/" + stream.getId() + "/messages?q=*&rangetype=relative&relative=3600";
     }
 
+    protected String buildMessageLink(String baseUrl, String index, String id) {
+        if (!baseUrl.endsWith("/")) {
+            baseUrl = baseUrl + "/";
+        }
+
+        return baseUrl + "messages/" + index + "/" + id;
+    }
+
 }
