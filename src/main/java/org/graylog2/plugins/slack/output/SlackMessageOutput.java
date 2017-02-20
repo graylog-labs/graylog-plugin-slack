@@ -110,9 +110,9 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         String messageLink;
         if (!isNullOrEmpty(graylogUri)) {
             String index = "graylog_deflector"; // would use msg.getFieldAs(String.class, "_index"), but it returns null
-            messageLink = "<" + buildMessageLink(graylogUri, index, msg.getId()) + "|New alert>";
+            messageLink = "<" + buildMessageLink(graylogUri, index, msg.getId()) + "|New message>";
         } else {
-            messageLink = "New alert";
+            messageLink = "New message";
         }
 
         return (notifyChannel ? "@channel " : "") + "*" + messageLink + " in Graylog stream " + streamLink + "*:\n" + "> " + msg.getMessage();
