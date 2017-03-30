@@ -18,16 +18,18 @@ public class SlackPluginBase {
     public static final String CK_CHANNEL = "channel";
     public static final String CK_USER_NAME = "user_name";
     public static final String CK_NOTIFY_CHANNEL = "notify_channel";
-    public static final String CK_ADD_ATTACHMENT = "add_attachment";
+    public static final String CK_ADD_STREAM_INFO = "add_stream_info";
     public static final String CK_SHORT_MODE = "short_mode";
     public static final String CK_LINK_NAMES = "link_names";
-    public static final String CK_ICON_URL = "icon_url";
-    public static final String CK_ICON_EMOJI = "icon_emoji";
+    public static final String CK_MESSAGE_ICON = "message_icon";
     public static final String CK_GRAYLOG2_URL = "graylog2_url";
     public static final String CK_PROXY_ADDRESS = "proxy_address";
     public static final String CK_COLOR = "color";
     public static final String CK_FIELDS = "custom_fields";
     public static final String CK_ADD_BLITEMS = "backlog_items";
+    public static final String CK_FOOTER_TEXT = "footer_text";
+    public static final String CK_FOOTER_ICON_URL = "footer_icon_url";
+    public static final String CK_FOOTER_TS_FIELD = "ts_field";
 
     protected static ConfigurationRequest configuration() {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
@@ -42,7 +44,7 @@ public class SlackPluginBase {
         );
         configurationRequest.addField(new TextField(
                 CK_USER_NAME, "User name", "Graylog",
-                "User name of the sender in Slack",
+                "Set your bot's' user name in Slack",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
@@ -51,18 +53,17 @@ public class SlackPluginBase {
                 ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new BooleanField(
-                CK_ADD_ATTACHMENT, "Include more information", true,
-                "Add structured information as message attachment")
+                CK_ADD_STREAM_INFO, "Include stream information", true,
+                "Include stream information in Slack attachment")
         );
         configurationRequest.addField(new NumberField(
                 CK_ADD_BLITEMS, "Backlog items", 5,
-                "Number of backlog item descriptions to attach")
+                "Number of backlog item descriptions to attach. If value is 0, no backlog will be included")
         );
 
         configurationRequest.addField(new BooleanField(
                 CK_SHORT_MODE, "Short mode", false,
-                "Enable short mode? This strips down the Slack message to the bare minimum to take less space in the chat room. " +
-                        "Not used in alarm callback but only in the message output module.")
+                "Enable short mode? This strips down the Slack message to the bare minimum to take less space in the chat room.")
         );
         configurationRequest.addField(new BooleanField(
                 CK_NOTIFY_CHANNEL, "Notify Channel", false,
@@ -73,13 +74,23 @@ public class SlackPluginBase {
                 "Find and link channel names and user names")
         );
         configurationRequest.addField(new TextField(
-                CK_ICON_URL, "Icon URL", null,
-                "Image to use as the icon for this message",
+                CK_MESSAGE_ICON, "Message Icon", null,
+                "Slack emoji to use as icon or an URL to an image icon",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                CK_ICON_EMOJI, "Icon Emoji", null,
-                "Emoji to use as the icon for this message (overrides Icon URL)",
+                CK_FOOTER_TEXT, "Footer Text", "Event time",
+                "Add some brief text to help contextualize and identify an attachment",
+                ConfigurationField.Optional.OPTIONAL)
+        );
+        configurationRequest.addField(new TextField(
+                CK_FOOTER_ICON_URL, "Footer Icon", null,
+                "Image URL to use as a small icon beside your footer text",
+                ConfigurationField.Optional.OPTIONAL)
+        );
+        configurationRequest.addField(new TextField(
+                CK_FOOTER_TS_FIELD, "Timestamp Field", "timestamp",
+                "A timestamp field for displaying a timestamp value as part of the attachment's footer",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
@@ -115,11 +126,11 @@ public class SlackPluginBase {
         }
 
         checkUri(configuration, CK_PROXY_ADDRESS);
-        checkUri(configuration, CK_ICON_URL);
         checkUri(configuration, CK_GRAYLOG2_URL);
+        checkUri(configuration, CK_FOOTER_ICON_URL);
     }
 
-    private static boolean isValidUriScheme(URI uri, String... validSchemes) {
+    public static boolean isValidUriScheme(URI uri, String... validSchemes) {
         return uri.getScheme() != null && Arrays.binarySearch(validSchemes, uri.getScheme(), null) >= 0;
     }
 

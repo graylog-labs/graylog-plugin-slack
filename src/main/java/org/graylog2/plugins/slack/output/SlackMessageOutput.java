@@ -60,29 +60,48 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
 
     @Override
     public void write(Message msg) throws Exception {
+        // load timestamp
+        final String tsField = configuration.getString(CK_FOOTER_TS_FIELD);
+        Long tsValue = null;
+        if (!isNullOrEmpty(tsField)) {
+            for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
+                if (tsField.equals(field.getKey())) {
+                    try {
+                        tsValue = Long.valueOf(field.getValue().toString());
+                        break;
+                    } catch (NumberFormatException e) {
+                        // ignore
+                    }
+                }
+            }
+        }      
+        
         SlackMessage slackMessage = new SlackMessage(
                 configuration.getString(CK_COLOR),
-                configuration.getString(CK_ICON_EMOJI),
-                configuration.getString(CK_ICON_URL),
+                configuration.getString(CK_MESSAGE_ICON),
                 buildMessage(stream, msg),
                 configuration.getString(CK_USER_NAME),
                 configuration.getString(CK_CHANNEL),
-                configuration.getBoolean(CK_LINK_NAMES)
+                configuration.getBoolean(CK_LINK_NAMES),
+                configuration.getString(CK_FOOTER_TEXT),
+                configuration.getString(CK_FOOTER_ICON_URL),
+                tsValue
         );
 
         // Add attachments if requested.
-        if (!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_ATTACHMENT)) {
+        if (!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_STREAM_INFO)) {
             slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
             slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+        }
 
+        int count = configuration.getInt(CK_ADD_BLITEMS);
+        if (count > 0) {
             for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
                 if (Message.RESERVED_FIELDS.contains(field.getKey())) {
                     continue;
                 }
-
                 slackMessage.addAttachment(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
             }
-
         }
 
         try {

@@ -1,6 +1,7 @@
 package org.graylog2.plugins.slack.callback;
 
 import com.google.common.collect.Lists;
+
 import org.graylog2.plugin.Message;
 import org.graylog2.plugin.MessageSummary;
 import org.graylog2.plugin.alarms.AlertCondition;
@@ -41,29 +42,48 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
     @Override
     public void call(Stream stream, AlertCondition.CheckResult result) throws AlarmCallbackException {
         final SlackClient client = new SlackClient(configuration);
+        // load timestamp
+        final String tsField = configuration.getString(CK_FOOTER_TS_FIELD);
+        Long tsValue = null;
+        if (!isNullOrEmpty(tsField)) {
+            final String[] fields = new String[] { tsField };
+            for (MessageSummary messageSummary : result.getMatchingMessages()) {
+                final String value = Arrays.stream(fields)
+                        .map(String::trim)
+                        .map(messageSummary::getField)
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(DELIMITER));
+                try {
+                    tsValue = Long.valueOf(value);
+                    break;
+                } catch (NumberFormatException e) {
+                    // ignore
+                }
+            }
+        }        
 
         SlackMessage message = new SlackMessage(
                 configuration.getString(CK_COLOR),
-                configuration.getString(CK_ICON_EMOJI),
-                configuration.getString(CK_ICON_URL),
+                configuration.getString(CK_MESSAGE_ICON),
                 buildMessage(stream, result),
                 configuration.getString(CK_USER_NAME),
                 configuration.getString(CK_CHANNEL),
-                configuration.getBoolean(CK_LINK_NAMES)
+                configuration.getBoolean(CK_LINK_NAMES),
+                configuration.getString(CK_FOOTER_TEXT),
+                configuration.getString(CK_FOOTER_ICON_URL),
+                tsValue
         );
 
         // Add attachments if requested.
         final List<Message> backlogItems = getAlarmBacklog(result);
 
-        if (configuration.getBoolean(CK_ADD_ATTACHMENT)) {
+        if (configuration.getBoolean(CK_ADD_STREAM_INFO)) {
             message.addAttachment(new SlackMessage.AttachmentField("Stream ID", stream.getId(), true));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Title", stream.getTitle(), false));
             message.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-
-            int count = configuration.getInt(CK_ADD_BLITEMS);
-            if (count < 1) {
-                count = 5; //Default items to show
-            }
+        }
+        int count = configuration.getInt(CK_ADD_BLITEMS);
+        if (count > 0) {
             final int blSize = backlogItems.size();
             if (blSize < count) {
                 count = blSize;
@@ -79,18 +99,12 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         // Add custom fields
         final String customFields = configuration.getString(SlackPluginBase.CK_FIELDS);
         if (!isNullOrEmpty(customFields)) {
+            boolean shortMode = configuration.getBoolean(CK_SHORT_MODE);
             final String[] fields = customFields.split(",");
             for (MessageSummary messageSummary : result.getMatchingMessages()) {
-                final String value = Arrays.stream(fields)
+                Arrays.stream(fields)
                         .map(String::trim)
-                        .map(messageSummary::getField)
-                        .map(String::valueOf)
-                        .collect(Collectors.joining(DELIMITER));
-
-                final String title = String.join(DELIMITER, (CharSequence[]) fields);
-
-                final SlackMessage.AttachmentField attachment = new SlackMessage.AttachmentField(title, value, false);
-                message.addAttachment(attachment);
+                        .forEach(f -> addAttachment(f, shortMode, messageSummary, message));
             }
         }
 
@@ -120,6 +134,14 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         }
 
         return backlog;
+    }
+
+    public void addAttachment(String name, boolean shortMode, MessageSummary messageSummary, SlackMessage message) {
+        Object value = messageSummary.getField(name);
+        if (value != null) {
+            final SlackMessage.AttachmentField attachment = new SlackMessage.AttachmentField(name, value.toString(), shortMode);
+            message.addAttachment(attachment);
+        }
     }
 
     public String buildMessage(Stream stream, AlertCondition.CheckResult result) {
