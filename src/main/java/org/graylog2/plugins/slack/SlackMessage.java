@@ -26,7 +26,7 @@ public class SlackMessage {
     private final boolean linkNames;
     private final String footerText;
     private final String footerIconUrl;
-    private final Long ts;
+    private final Long ts; 
 
     private final List<AttachmentField> attachments;
 

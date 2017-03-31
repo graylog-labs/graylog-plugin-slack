@@ -14,6 +14,7 @@ import org.graylog2.plugin.streams.Stream;
 import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 
@@ -64,15 +65,22 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         final String tsField = configuration.getString(CK_FOOTER_TS_FIELD);
         Long tsValue = null;
         if (!isNullOrEmpty(tsField)) {
-            for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
-                if (tsField.equals(field.getKey())) {
-                    try {
-                        tsValue = Long.valueOf(field.getValue().toString());
-                        break;
-                    } catch (NumberFormatException e) {
-                        // ignore
+            try {
+                DateTime timestamp = null;
+                if ("timestamp".equals(tsField)) { // timestamp is reserved field in org.graylog2.notifications.NotificationImpl
+                    timestamp = msg.getTimestamp();
+                }
+                else {
+                    Object value = msg.getField(tsField);
+                    if (value instanceof DateTime) {
+                        timestamp = (DateTime)value;
+                    } else {
+                        timestamp = new DateTime(value, DateTimeZone.UTC);
                     }
                 }
+                tsValue = timestamp.getMillis() / 1000;
+            } catch (NullPointerException | IllegalArgumentException e) {
+                // ignore
             }
         }      
         

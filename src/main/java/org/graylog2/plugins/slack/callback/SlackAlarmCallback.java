@@ -15,17 +15,17 @@ import org.graylog2.plugin.streams.Stream;
 import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback {
-    private static final String DELIMITER = " | ";
     private Configuration configuration;
 
     @Override
@@ -46,21 +46,27 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         final String tsField = configuration.getString(CK_FOOTER_TS_FIELD);
         Long tsValue = null;
         if (!isNullOrEmpty(tsField)) {
-            final String[] fields = new String[] { tsField };
             for (MessageSummary messageSummary : result.getMatchingMessages()) {
-                final String value = Arrays.stream(fields)
-                        .map(String::trim)
-                        .map(messageSummary::getField)
-                        .map(String::valueOf)
-                        .collect(Collectors.joining(DELIMITER));
                 try {
-                    tsValue = Long.valueOf(value);
+                    DateTime timestamp = null;
+                    if ("timestamp".equals(tsField)) { // timestamp is reserved field in org.graylog2.notifications.NotificationImpl
+                        timestamp = messageSummary.getTimestamp();
+                    }
+                    else {
+                        Object value = messageSummary.getField(tsField);
+                        if (value instanceof DateTime) {
+                            timestamp = (DateTime)value;
+                        } else {
+                            timestamp = new DateTime(value, DateTimeZone.UTC);
+                        }
+                    }
+                    tsValue = timestamp.getMillis() / 1000;
                     break;
-                } catch (NumberFormatException e) {
+                } catch (NullPointerException | IllegalArgumentException e) {
                     // ignore
                 }
             }
-        }        
+        }    
 
         SlackMessage message = new SlackMessage(
                 configuration.getString(CK_COLOR),
