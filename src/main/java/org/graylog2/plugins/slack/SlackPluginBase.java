@@ -17,7 +17,7 @@ public class SlackPluginBase {
     public static final String CK_WEBHOOK_URL = "webhook_url";
     public static final String CK_CHANNEL = "channel";
     public static final String CK_USER_NAME = "user_name";
-    public static final String CK_NOTIFY_CHANNEL = "notify_channel";
+    public static final String CK_NOTIFY_USER = "notify_user";
     public static final String CK_ADD_STREAM_INFO = "add_stream_info";
     public static final String CK_SHORT_MODE = "short_mode";
     public static final String CK_LINK_NAMES = "link_names";
@@ -65,9 +65,9 @@ public class SlackPluginBase {
                 CK_SHORT_MODE, "Short mode", false,
                 "Enable short mode? This strips down the Slack message to the bare minimum to take less space in the chat room.")
         );
-        configurationRequest.addField(new BooleanField(
-                CK_NOTIFY_CHANNEL, "Notify Channel", false,
-                "Notify all users in channel by adding @channel to the message.")
+        configurationRequest.addField(new TextField(
+                CK_NOTIFY_USER, "Notify User", "",
+                "Also notify user in channel by adding @user to the message. You can also use ${field} in this text.")
         );
         configurationRequest.addField(new BooleanField(
                 CK_LINK_NAMES, "Link names", true,
@@ -75,17 +75,17 @@ public class SlackPluginBase {
         );
         configurationRequest.addField(new TextField(
                 CK_MESSAGE_ICON, "Message Icon", null,
-                "Slack emoji to use as icon or an URL to an image icon",
+                "Set a Slack emoji to use as icon or an URL to an image icon",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                CK_FOOTER_TEXT, "Footer Text", "Event time",
-                "Add some brief text to help contextualize and identify an attachment",
+                CK_FOOTER_TEXT, "Footer Text", "${source}",
+                "Add some brief text to help contextualize and identify an attachment. You can also use ${field} in this text.",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
                 CK_FOOTER_ICON_URL, "Footer Icon", null,
-                "Image URL to use as a small icon beside your footer text",
+                "Set an image URL to use as a small icon beside your footer text",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
@@ -151,7 +151,6 @@ public class SlackPluginBase {
         if (!baseUrl.endsWith("/")) {
             baseUrl = baseUrl + "/";
         }
-
         return baseUrl + "streams/" + stream.getId() + "/messages?q=*&rangetype=relative&relative=3600";
     }
 

@@ -2,6 +2,8 @@ package org.graylog2.plugins.slack.output;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.graylog2.plugin.Message;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
@@ -83,7 +85,13 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
                 // ignore
             }
         }      
-        
+        // load footer text
+        String footerText = configuration.getString(CK_FOOTER_TEXT);
+        if (!isNullOrEmpty(footerText)) {
+            StrSubstitutor sub = new StrSubstitutor(msg.getFields());
+            footerText = sub.replace(footerText);
+        }
+
         SlackMessage slackMessage = new SlackMessage(
                 configuration.getString(CK_COLOR),
                 configuration.getString(CK_MESSAGE_ICON),
@@ -91,7 +99,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
                 configuration.getString(CK_USER_NAME),
                 configuration.getString(CK_CHANNEL),
                 configuration.getBoolean(CK_LINK_NAMES),
-                configuration.getString(CK_FOOTER_TEXT),
+                footerText,
                 configuration.getString(CK_FOOTER_ICON_URL),
                 tsValue
         );
@@ -123,18 +131,22 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         if (configuration.getBoolean(CK_SHORT_MODE)) {
             return msg.getTimestamp().toDateTime(DateTimeZone.getDefault()).toString(DateTimeFormat.shortTime()) + ": " + msg.getMessage();
         }
-
         String graylogUri = configuration.getString(CK_GRAYLOG2_URL);
-        boolean notifyChannel = configuration.getBoolean(CK_NOTIFY_CHANNEL);
+        String notifyUser = configuration.getString(CK_NOTIFY_USER);
 
-        String titleLink;
-        if (!isNullOrEmpty(graylogUri)) {
-            titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
-        } else {
-            titleLink = "_" + stream.getTitle() + "_";
+        StringBuilder message = new StringBuilder();
+        if (!isNullOrEmpty(notifyUser)) {
+            StrSubstitutor sub = new StrSubstitutor(msg.getFields());
+            notifyUser = sub.replace(notifyUser);
+            message.append(notifyUser).append(' ');
         }
-
-        return (notifyChannel ? "@channel " : "") + "*New message in Graylog stream " + titleLink + "*:\n" + "> " + msg.getMessage();
+        message.append("*New message in Graylog stream ");
+        if (!isNullOrEmpty(graylogUri)) {
+            message.append('<').append(buildStreamLink(graylogUri, stream)).append('|').append(stream.getTitle()).append('>');
+        } else {
+            message.append('_').append(stream.getTitle()).append('_');
+        }
+        return message.append("*:\n> ").append(msg.getMessage()).toString();
     }
 
     @Override

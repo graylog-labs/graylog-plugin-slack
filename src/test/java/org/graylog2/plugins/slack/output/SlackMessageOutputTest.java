@@ -18,7 +18,7 @@ public class SlackMessageOutputTest {
             .put("channel", "#test_channel")
             .put("user_name", "test_user_name")
             .put("add_attachment", true)
-            .put("notify_channel", true)
+            .put("notify_user", "@doe")
             .put("link_names", true)
             .put("message_icon", "http://example.com")
             .put("graylog2_url", "http://graylog2.example.com")
@@ -31,7 +31,7 @@ public class SlackMessageOutputTest {
 
         final Map<String, Object> attributes = output.getConfiguration();
         assertThat(attributes.keySet(), hasItems("webhook_url", "channel", "user_name", "add_attachment",
-                "notify_channel", "link_names", "message_icon", "graylog2_url", "color"));
+                "notify_user", "link_names", "message_icon", "graylog2_url", "color"));
     }
 
     @Test

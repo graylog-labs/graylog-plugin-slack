@@ -2,6 +2,7 @@ package org.graylog2.plugins.slack.callback;
 
 import com.google.common.collect.Lists;
 
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.graylog2.plugin.Message;
 import org.graylog2.plugin.MessageSummary;
 import org.graylog2.plugin.alarms.AlertCondition;
@@ -61,12 +62,20 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
                         }
                     }
                     tsValue = timestamp.getMillis() / 1000;
-                    break;
+                    break; // use first occurance of timestamp
                 } catch (NullPointerException | IllegalArgumentException e) {
                     // ignore
                 }
             }
         }    
+        // load footer text
+        String footerText = configuration.getString(CK_FOOTER_TEXT);
+        if (!isNullOrEmpty(footerText)) {
+            for (MessageSummary messageSummary : result.getMatchingMessages()) {
+                StrSubstitutor sub = new StrSubstitutor(messageSummary.getFields());
+                footerText = sub.replace(footerText);
+            }
+        }
 
         SlackMessage message = new SlackMessage(
                 configuration.getString(CK_COLOR),
@@ -75,7 +84,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
                 configuration.getString(CK_USER_NAME),
                 configuration.getString(CK_CHANNEL),
                 configuration.getBoolean(CK_LINK_NAMES),
-                configuration.getString(CK_FOOTER_TEXT),
+                footerText,
                 configuration.getString(CK_FOOTER_ICON_URL),
                 tsValue
         );
@@ -152,16 +161,23 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
 
     public String buildMessage(Stream stream, AlertCondition.CheckResult result) {
         String graylogUri = configuration.getString(CK_GRAYLOG2_URL);
-        boolean notifyChannel = configuration.getBoolean(CK_NOTIFY_CHANNEL);
+        String notifyUser = configuration.getString(CK_NOTIFY_USER);
 
-        String titleLink;
-        if (!isNullOrEmpty(graylogUri)) {
-            titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
-        } else {
-            titleLink = "_" + stream.getTitle() + "_";
+        StringBuilder message = new StringBuilder();
+        if (!isNullOrEmpty(notifyUser)) {
+            for (MessageSummary messageSummary : result.getMatchingMessages()) {
+                StrSubstitutor sub = new StrSubstitutor(messageSummary.getFields());
+                notifyUser = sub.replace(notifyUser);
+            }
+            message.append(notifyUser).append(' ');
         }
-
-        return (notifyChannel ? "@channel " : "") + "*Alert for Graylog stream " + titleLink + "*:\n" + "> " + result.getResultDescription();
+        message.append("*Alert for Graylog stream ");
+        if (!isNullOrEmpty(graylogUri)) {
+            message.append('<').append(buildStreamLink(graylogUri, stream)).append('|').append(stream.getTitle()).append('>');
+        } else {
+            message.append('_').append(stream.getTitle()).append('_');
+        }
+        return message.append("*:\n> ").append(result.getResultDescription()).toString();
     }
 
     @Override
