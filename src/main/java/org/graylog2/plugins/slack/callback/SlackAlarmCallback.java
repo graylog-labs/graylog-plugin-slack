@@ -18,8 +18,6 @@ import org.graylog2.plugins.slack.SlackPluginBase;
 import org.graylog2.plugins.slack.StringReplacement;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,7 +29,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback {
     private Configuration configuration;
-    private static final Logger LOG = LoggerFactory.getLogger(SlackClient.class);
 
     @Override
     public void initialize(final Configuration config) throws AlarmCallbackConfigurationException {
