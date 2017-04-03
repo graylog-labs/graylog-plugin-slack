@@ -44,10 +44,14 @@ public final class StringReplacement {
         String[] exprs = findDefaultValue(source.substring(begin, i++));
         Object value = valueMap.get(exprs[0]);
         if (value == null && exprs.length > 1)
-          value = exprs[1] == null ? "" : exprs[1];
-        if (prefix != null)
-          sb.append(prefix);
-        sb.append(value);
+          value = exprs[1];
+        if (value == null || "".equals(value))
+          sb.append("");
+        else {
+          if (prefix != null)
+            sb.append(prefix);
+          sb.append(value);
+        }
       } else {
         sb.append(strArray[i]);
         ++i;

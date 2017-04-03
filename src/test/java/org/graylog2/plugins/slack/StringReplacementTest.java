@@ -89,4 +89,20 @@ public class StringReplacementTest {
         assertEquals("@siri", output);
     }
 
+    @Test
+    public void testPrefixOnDefaultEmpty() {
+        Map<String, Object> fields = new HashMap<String, Object>();
+        final String input = "${user:-}";
+        String output = StringReplacement.replaceWithPrefix(input, "@", fields);
+        assertEquals("", output);
+    }
+
+    @Test
+    public void testPrefixOnEmptyValue() {
+        Map<String, Object> fields = new HashMap<String, Object>();
+        final String input = "${user}";
+        String output = StringReplacement.replaceWithPrefix(input, "@", fields);
+        assertEquals("", output);
+    }
+
 }
