@@ -67,7 +67,8 @@ public class SlackPluginBase {
         );
         configurationRequest.addField(new TextField(
                 CK_NOTIFY_USER, "Notify User", "",
-                "Also notify user in channel by adding @user to the message. You can also use ${field} in this text.")
+                "Also notify user in channel by adding @user to the message. You can also use ${field[:-default]} in this text.",
+                ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new BooleanField(
                 CK_LINK_NAMES, "Link names", true,
@@ -80,7 +81,7 @@ public class SlackPluginBase {
         );
         configurationRequest.addField(new TextField(
                 CK_FOOTER_TEXT, "Footer Text", "${source}",
-                "Add some brief text to help contextualize and identify an attachment. You can also use ${field} in this text.",
+                "Add some brief text to help contextualize and identify an attachment. You can also use ${field[:-default]} in this text.",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
@@ -105,7 +106,7 @@ public class SlackPluginBase {
         );
         configurationRequest.addField(new TextField(
                 CK_FIELDS, "Custom fields", null,
-                "Add fields into alert (field1, field2...)",
+                "Add fields from backlog item(s) into alert (field1, field2...).",
                 ConfigurationField.Optional.OPTIONAL)
         );
 

@@ -3,7 +3,6 @@ package org.graylog2.plugins.slack.output;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
-import org.apache.commons.lang3.text.StrSubstitutor;
 import org.graylog2.plugin.Message;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
@@ -16,6 +15,7 @@ import org.graylog2.plugin.streams.Stream;
 import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
+import org.graylog2.plugins.slack.StringReplacement;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -88,8 +88,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         // load footer text
         String footerText = configuration.getString(CK_FOOTER_TEXT);
         if (!isNullOrEmpty(footerText)) {
-            StrSubstitutor sub = new StrSubstitutor(msg.getFields());
-            footerText = sub.replace(footerText);
+            footerText = StringReplacement.replace(footerText, msg.getFields());
         }
 
         SlackMessage slackMessage = new SlackMessage(
@@ -136,8 +135,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
 
         StringBuilder message = new StringBuilder();
         if (!isNullOrEmpty(notifyUser)) {
-            StrSubstitutor sub = new StrSubstitutor(msg.getFields());
-            notifyUser = sub.replace(notifyUser);
+            notifyUser = StringReplacement.replaceWithPrefix(notifyUser, "@", msg.getFields());
             message.append(notifyUser).append(' ');
         }
         message.append("*New message in Graylog stream ");
