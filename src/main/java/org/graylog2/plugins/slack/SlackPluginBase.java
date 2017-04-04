@@ -57,7 +57,7 @@ public class SlackPluginBase {
                 "Include stream information in Slack attachment")
         );
         configurationRequest.addField(new NumberField(
-                CK_ADD_BLITEMS, "Backlog items", 5,
+                CK_ADD_BLITEMS, "Backlog items", 1,
                 "Number of backlog item descriptions to attach. If value is 0, no backlog will be included")
         );
 

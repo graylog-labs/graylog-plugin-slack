@@ -120,15 +120,17 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
 
         // Add custom fields from backlog list
         final String customFields = configuration.getString(SlackPluginBase.CK_FIELDS);
-        if (!isNullOrEmpty(customFields) && backlogItems.size() > 0) {
+        // We don't care backlog item setting. We will list every fields from every backlog items
+        final int totalItem = backlogItems.size();
+        if (!isNullOrEmpty(customFields) &&  totalItem > 0) {
             boolean shortMode = configuration.getBoolean(CK_SHORT_MODE);
             final String[] fields = customFields.split(",");
-            final int totalItem = count;
-            AtomicInteger atomicInteger = new AtomicInteger(1);
+            int backlogIndex = 0;
             for (Message msg : backlogItems) {
+                final int index = ++backlogIndex;
                 Arrays.stream(fields)
                         .map(String::trim)
-                        .forEach(f -> addAttachment(atomicInteger.getAndIncrement(), f, shortMode, msg, message, totalItem));
+                        .forEach(f -> addAttachment(index, f, shortMode, msg, message, totalItem));
             }
         }
 
