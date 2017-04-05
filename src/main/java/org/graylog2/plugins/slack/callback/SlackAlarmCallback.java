@@ -18,16 +18,18 @@ import org.graylog2.plugins.slack.SlackPluginBase;
 import org.graylog2.plugins.slack.StringReplacement;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback {
+    private static final Logger LOG = LoggerFactory.getLogger(SlackClient.class);
     private Configuration configuration;
 
     @Override
@@ -44,93 +46,76 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
     @Override
     public void call(Stream stream, AlertCondition.CheckResult result) throws AlarmCallbackException {
         final SlackClient client = new SlackClient(configuration);
-        // load timestamp
+        final String color = configuration.getString(CK_COLOR);
+        final String footerIconUrl = configuration.getString(CK_FOOTER_ICON_URL);
+        final String footerText = configuration.getString(CK_FOOTER_TEXT);
         final String tsField = configuration.getString(CK_FOOTER_TS_FIELD);
-        Long tsValue = null;
-        if (!isNullOrEmpty(tsField)) {
-            for (MessageSummary messageSummary : result.getMatchingMessages()) {
-                try {
-                    DateTime timestamp = null;
-                    if ("timestamp".equals(tsField)) { // timestamp is reserved field in org.graylog2.notifications.NotificationImpl
-                        timestamp = messageSummary.getTimestamp();
-                    }
-                    else {
-                        Object value = messageSummary.getField(tsField);
-                        if (value instanceof DateTime) {
-                            timestamp = (DateTime)value;
-                        } else {
-                            timestamp = new DateTime(value, DateTimeZone.UTC);
-                        }
-                    }
-                    tsValue = timestamp.getMillis() / 1000;
-                    break; // use first occurance of timestamp
-                } catch (NullPointerException | IllegalArgumentException e) {
-                    // ignore
-                }
-            }
-        }    
-        // load footer text
-        String footerText = configuration.getString(CK_FOOTER_TEXT);
-        if (!isNullOrEmpty(footerText)) {
-            List<MessageSummary> messageList = result.getMatchingMessages();
-            if (messageList.size() > 0) {
-                for (MessageSummary messageSummary : messageList) {
-                    footerText = StringReplacement.replace(footerText, messageSummary.getRawMessage().getFields());
-                }
-            }
-            else {
-                footerText = StringReplacement.replace(footerText, Collections.emptyMap());
-            }
-        }
+        final String customFields = configuration.getString(SlackPluginBase.CK_FIELDS);
 
+        // Create Message
         SlackMessage message = new SlackMessage(
-                configuration.getString(CK_COLOR),
                 configuration.getString(CK_MESSAGE_ICON),
                 buildMessage(stream, result),
                 configuration.getString(CK_USER_NAME),
                 configuration.getString(CK_CHANNEL),
-                configuration.getBoolean(CK_LINK_NAMES),
-                footerText,
-                configuration.getString(CK_FOOTER_ICON_URL),
-                tsValue
+                configuration.getBoolean(CK_LINK_NAMES)
         );
 
+        // Create Attachment for Stream section
         if (configuration.getBoolean(CK_ADD_STREAM_INFO)) {
-            message.addAttachment(new SlackMessage.AttachmentField("Stream ID", stream.getId(), true));
-            message.addAttachment(new SlackMessage.AttachmentField("Stream Title", stream.getTitle(), false));
-            message.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
+            SlackMessage.Attachment attachment = message.addAttachment("Stream", color, null, null, null);
+            attachment.addField(new SlackMessage.AttachmentField("Stream ID", stream.getId(), true));
+            attachment.addField(new SlackMessage.AttachmentField("Stream Title", stream.getTitle(), false));
+            attachment.addField(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
         }
 
-        // Add attachments if requested.
+        // Create Attachment for Backlog and Fields section
         final List<Message> backlogItems = getAlarmBacklog(result);
         int count = configuration.getInt(CK_ADD_BLITEMS);
+        LOG.info("Backlog item setting size {}", count);
         if (count > 0) {
             final int blSize = backlogItems.size();
             if (blSize < count) {
                 count = blSize;
             }
-            for (int i = 0; i < count; i++) {
-                StringBuilder attachmentName = new StringBuilder();
-                if (count > 1)
-                    attachmentName.append('(').append(i+1).append(") ");
-                attachmentName.append("Backlog");
-                message.addAttachment(new SlackMessage.AttachmentField(attachmentName.toString(), backlogItems.get(i).getMessage(), false));
-            }
-        }
-
-        // Add custom fields from backlog list
-        final String customFields = configuration.getString(SlackPluginBase.CK_FIELDS);
-        // We don't care backlog item setting. We will list every fields from every backlog items
-        final int totalItem = backlogItems.size();
-        if (!isNullOrEmpty(customFields) &&  totalItem > 0) {
             boolean shortMode = configuration.getBoolean(CK_SHORT_MODE);
-            final String[] fields = customFields.split(",");
-            int backlogIndex = 0;
-            for (Message msg : backlogItems) {
-                final int index = ++backlogIndex;
-                Arrays.stream(fields)
-                        .map(String::trim)
-                        .forEach(f -> addAttachment(index, f, shortMode, msg, message, totalItem));
+            final String[] fields;
+            if (!isNullOrEmpty(customFields)) {
+                fields = customFields.split(",");
+            } else {
+                fields = new String[0];
+            }
+            for (int i = 0; i < count; i++) {
+                Message backlogItem = backlogItems.get(i);
+                String footer  = null;
+                Long ts = null;
+                if (!isNullOrEmpty(footerText)) {
+                    footer = StringReplacement.replace(footerText, backlogItem.getFields()).trim();
+                    try {
+                        DateTime timestamp = null;
+                        if ("timestamp".equals(tsField)) { // timestamp is reserved field in org.graylog2.notifications.NotificationImpl
+                            timestamp = backlogItem.getTimestamp();
+                        }
+                        else {
+                            Object value = backlogItem.getField(tsField);
+                            if (value instanceof DateTime) {
+                                timestamp = (DateTime)value;
+                            } else {
+                                timestamp = new DateTime(value, DateTimeZone.UTC);
+                            }
+                        }
+                        ts = timestamp.getMillis() / 1000;
+                    } catch (NullPointerException | IllegalArgumentException e) {
+                        // ignore
+                    }
+                }
+                final SlackMessage.Attachment attachment = message.addAttachment(backlogItem.getMessage(), color, footer, footerIconUrl, ts);
+                // Add custom fields from backlog list
+                if (fields.length > 0) {
+                    Arrays.stream(fields)
+                            .map(String::trim)
+                            .forEach(f -> addField(f, shortMode, backlogItem, attachment));
+                }
             }
         }
 
@@ -160,16 +145,10 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         return backlog;
     }
 
-    public void addAttachment(int index, String name, boolean shortMode, Message message, SlackMessage slackMessage, int totalItem) {
-        Object value = message.getField(name);
+    private void addField(String fieldName, boolean shortMode, Message message, SlackMessage.Attachment attachment) {
+        Object value = message.getField(fieldName);
         if (value != null) {
-            StringBuilder filedName = new StringBuilder();
-            if (totalItem > 1) {
-                filedName.append('(').append(index).append(") ");
-            }
-            filedName.append(name);
-            final SlackMessage.AttachmentField attachment = new SlackMessage.AttachmentField(filedName.toString(), value.toString(), shortMode);
-            slackMessage.addAttachment(attachment);
+            attachment.addField(new SlackMessage.AttachmentField(fieldName, value.toString(), shortMode));
         }
     }
 

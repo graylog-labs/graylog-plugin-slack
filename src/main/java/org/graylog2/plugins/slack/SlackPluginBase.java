@@ -30,16 +30,19 @@ public class SlackPluginBase {
     public static final String CK_FOOTER_TEXT = "footer_text";
     public static final String CK_FOOTER_ICON_URL = "footer_icon_url";
     public static final String CK_FOOTER_TS_FIELD = "ts_field";
+    public static final String CK_ACKNOWLEDGE = "acknowledge";
 
     protected static ConfigurationRequest configuration() {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
 
         configurationRequest.addField(new TextField(
-                CK_WEBHOOK_URL, "Webhook URL", "", "Slack \"Incoming Webhook\" URL",
+                CK_WEBHOOK_URL, "Webhook URL", "", 
+                "Slack \"Incoming Webhook\" URL",
                 ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                CK_CHANNEL, "Channel", "#channel", "Name of Slack #channel or @user for a direct message.",
+                CK_CHANNEL, "Channel", "#channel", 
+                "Name of Slack #channel or @user for a direct message.",
                 ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new TextField(
@@ -53,7 +56,7 @@ public class SlackPluginBase {
                 ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new BooleanField(
-                CK_ADD_STREAM_INFO, "Include stream information", true,
+                CK_ADD_STREAM_INFO, "Include stream information", false,
                 "Include stream information in Slack attachment")
         );
         configurationRequest.addField(new NumberField(
@@ -62,7 +65,7 @@ public class SlackPluginBase {
         );
 
         configurationRequest.addField(new BooleanField(
-                CK_SHORT_MODE, "Short mode", false,
+                CK_SHORT_MODE, "Short mode", true,
                 "Enable short mode? This strips down the Slack message to the bare minimum to take less space in the chat room.")
         );
         configurationRequest.addField(new TextField(
@@ -76,22 +79,22 @@ public class SlackPluginBase {
         );
         configurationRequest.addField(new TextField(
                 CK_MESSAGE_ICON, "Message Icon", null,
-                "Set a Slack emoji to use as icon or an URL to an image icon",
+                "Set a Slack emoji or an image URL to use as an icon",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
                 CK_FOOTER_TEXT, "Footer Text", "${source}",
-                "Add some brief text to help contextualize and identify an attachment. You can also use ${field[:-default]} in this text.",
+                "(For Notification) Add some brief text to help contextualize and identify an attachment. You can also use ${field[:-default]} in this text.",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
                 CK_FOOTER_ICON_URL, "Footer Icon", null,
-                "Set an image URL to use as a small icon beside your footer text",
+                "(For Notification) Set an image URL to use as a small icon beside your footer text",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
                 CK_FOOTER_TS_FIELD, "Timestamp Field", "timestamp",
-                "A timestamp field for displaying a timestamp value as part of the attachment's footer",
+                "(For Notification) A timestamp field for displaying a timestamp value as part of the attachment's footer",
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
@@ -105,11 +108,10 @@ public class SlackPluginBase {
                 ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
-                CK_FIELDS, "Custom fields", null,
+                CK_FIELDS, "Backlog fields", null,
                 "Add fields from backlog item(s) into alert (field1, field2...).",
                 ConfigurationField.Optional.OPTIONAL)
         );
-
         return configurationRequest;
     }
 

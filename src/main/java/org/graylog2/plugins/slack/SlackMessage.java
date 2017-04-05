@@ -22,24 +22,16 @@ public class SlackMessage {
     private final String userName;
     private final String message;
     private final String messageIcon;
-    private final String color;
     private final boolean linkNames;
-    private final String footerText;
-    private final String footerIconUrl;
-    private final Long ts; 
 
-    private final List<AttachmentField> attachments;
+    private final List<Attachment> attachments;
 
-    public SlackMessage(String color, String messageIcon, String message, String userName, String channel, boolean linkNames, String footerText, String footerIconUrl, Long ts) {
-        this.color = color;
+    public SlackMessage(String messageIcon, String message, String userName, String channel, boolean linkNames) {
         this.message = message;
         this.messageIcon = messageIcon;
         this.userName = userName;
         this.channel = channel;
         this.linkNames = linkNames;
-        this.footerText = footerText;
-        this.footerIconUrl = footerIconUrl;
-        this.ts = ts;
 
         this.attachments = Lists.newArrayList();
     }
@@ -72,8 +64,6 @@ public class SlackMessage {
         }
 
         if (!attachments.isEmpty()) {
-            final Attachment attachment = new Attachment("Alert details", null, null, color, footerText, footerIconUrl, ts, attachments);
-            final List<Attachment> attachments = ImmutableList.of(attachment);
             params.put("attachments", attachments);
         }
 
@@ -84,8 +74,15 @@ public class SlackMessage {
         }
     }
 
-    public void addAttachment(AttachmentField attachment) {
+    public Attachment addAttachment(Attachment attachment) {
         this.attachments.add(attachment);
+        return attachment;
+    }
+
+    public Attachment addAttachment(String text, String color, String footerText, String footerIconUrl, Long ts) {
+        Attachment attachment = new Attachment(text, null, color, footerText, footerIconUrl, ts, Lists.newArrayList());
+        this.attachments.add(attachment);
+        return attachment;
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -108,6 +105,10 @@ public class SlackMessage {
         @JsonProperty
         public List<AttachmentField> fields;
 
+        public Attachment(String text, String pretext, String color, String footerText, String footerIconUrl, Long ts, List<AttachmentField> fields) {
+            this(text, text, pretext, color, footerText, footerIconUrl, ts, fields);
+        }
+
         @JsonCreator
         public Attachment(String fallback, String text, String pretext, String color, String footerText, String footerIconUrl, Long ts, List<AttachmentField> fields) {
             this.fallback = fallback;
@@ -118,6 +119,11 @@ public class SlackMessage {
             this.footerIconUrl = footerIconUrl;
             this.ts = ts;
             this.fields = fields;
+        }
+
+        public Attachment addField(AttachmentField field) {
+            this.fields.add(field);
+            return this;
         }
     }
 

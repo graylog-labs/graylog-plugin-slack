@@ -16,7 +16,6 @@ import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
 import org.graylog2.plugins.slack.StringReplacement;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 
@@ -63,64 +62,35 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
 
     @Override
     public void write(Message msg) throws Exception {
-        // load timestamp
-        final String tsField = configuration.getString(CK_FOOTER_TS_FIELD);
-        Long tsValue = null;
-        if (!isNullOrEmpty(tsField)) {
-            try {
-                DateTime timestamp = null;
-                if ("timestamp".equals(tsField)) { // timestamp is reserved field in org.graylog2.notifications.NotificationImpl
-                    timestamp = msg.getTimestamp();
-                }
-                else {
-                    Object value = msg.getField(tsField);
-                    if (value instanceof DateTime) {
-                        timestamp = (DateTime)value;
-                    } else {
-                        timestamp = new DateTime(value, DateTimeZone.UTC);
-                    }
-                }
-                tsValue = timestamp.getMillis() / 1000;
-            } catch (NullPointerException | IllegalArgumentException e) {
-                // ignore
-            }
-        }      
-        // load footer text
-        String footerText = configuration.getString(CK_FOOTER_TEXT);
-        if (!isNullOrEmpty(footerText)) {
-            footerText = StringReplacement.replace(footerText, msg.getFields());
-        }
-
-        SlackMessage slackMessage = new SlackMessage(
-                configuration.getString(CK_COLOR),
+        final String color = configuration.getString(CK_COLOR);
+        SlackMessage message = new SlackMessage(
                 configuration.getString(CK_MESSAGE_ICON),
                 buildMessage(stream, msg),
                 configuration.getString(CK_USER_NAME),
                 configuration.getString(CK_CHANNEL),
-                configuration.getBoolean(CK_LINK_NAMES),
-                footerText,
-                configuration.getString(CK_FOOTER_ICON_URL),
-                tsValue
+                configuration.getBoolean(CK_LINK_NAMES)
         );
 
         // Add attachments if requested.
-        if (!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_STREAM_INFO)) {
-            slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-            slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+        if (configuration.getBoolean(CK_ADD_STREAM_INFO)) {
+            SlackMessage.Attachment attachment = message.addAttachment("Stream", color, null, null, null);
+            attachment.addField(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+            attachment.addField(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
         }
 
         int count = configuration.getInt(CK_ADD_BLITEMS);
-        if (count > 0) {
+        if (!configuration.getBoolean(CK_SHORT_MODE) && count > 0) {
+            SlackMessage.Attachment attachment = message.addAttachment(null, color, null, null, null);
             for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
                 if (Message.RESERVED_FIELDS.contains(field.getKey())) {
                     continue;
                 }
-                slackMessage.addAttachment(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
+                attachment.addField(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
             }
         }
 
         try {
-            client.send(slackMessage);
+            client.send(message);
         } catch (SlackClient.SlackClientException e) {
             throw new RuntimeException("Could not send message to Slack.", e);
         }
