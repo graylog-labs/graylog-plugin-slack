@@ -19,11 +19,10 @@ public class SlackAlarmCallbackTest {
             .put("webhook_url", "https://www.example.org/")
             .put("channel", "#test_channel")
             .put("user_name", "test_user_name")
-            .put("add_attachment", true)
-            .put("notify_channel", true)
+            .put("add_stream_info", true)
+            .put("notify_user", "@doe")
             .put("link_names", true)
-            .put("icon_url", "http://example.com")
-            .put("icon_emoji", "test_icon_emoji")
+            .put("message_icon", "http://example.com")
             .put("graylog2_url", "http://graylog2.example.com")
             .put("color", "#FF0000")
             .build();
@@ -46,8 +45,8 @@ public class SlackAlarmCallbackTest {
         alarmCallback.initialize(configuration);
 
         final Map<String, Object> attributes = alarmCallback.getAttributes();
-        assertThat(attributes.keySet(), hasItems("webhook_url", "channel", "user_name", "add_attachment",
-                "notify_channel", "link_names", "icon_url", "icon_emoji", "graylog2_url", "color"));
+        assertThat(attributes.keySet(), hasItems("webhook_url", "channel", "user_name", "add_stream_info",
+                "notify_user", "link_names", "message_icon", "graylog2_url", "color"));
     }
 
     @Test
@@ -84,16 +83,6 @@ public class SlackAlarmCallbackTest {
     }
 
     @Test(expected = AlarmCallbackConfigurationException.class)
-    public void checkConfigurationFailsIfIconUrlIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
-        alarmCallback.initialize(validConfigurationWithValue("icon_url", "Definitely$$Not#A!!URL"));
-    }
-
-    @Test(expected = AlarmCallbackConfigurationException.class)
-    public void checkConfigurationFailsIfIconUrlIsNotHttpOrHttps() throws AlarmCallbackConfigurationException, ConfigurationException {
-        alarmCallback.initialize(validConfigurationWithValue("icon_url", "ftp://example.net"));
-    }
-
-    @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfGraylog2UrlIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("graylog2_url", "Definitely$$Not#A!!URL"));
     }
@@ -121,8 +110,8 @@ public class SlackAlarmCallbackTest {
     @Test
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),
-                hasItems("webhook_url", "channel", "user_name", "add_attachment", "notify_channel", "link_names",
-                        "icon_url", "icon_emoji", "graylog2_url", "color"));
+                hasItems("webhook_url", "channel", "user_name", "add_stream_info", "notify_user", "link_names",
+                        "message_icon", "graylog2_url", "color", "footer_text", "footer_icon_url", "ts_field"));
     }
 
     private Configuration validConfigurationWithout(final String key) {

@@ -2,6 +2,7 @@ package org.graylog2.plugins.slack.output;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+
 import org.graylog2.plugin.Message;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
@@ -14,6 +15,7 @@ import org.graylog2.plugin.streams.Stream;
 import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
+import org.graylog2.plugins.slack.StringReplacement;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 
@@ -60,10 +62,9 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
 
     @Override
     public void write(Message msg) throws Exception {
-        SlackMessage slackMessage = new SlackMessage(
-                configuration.getString(CK_COLOR),
-                configuration.getString(CK_ICON_EMOJI),
-                configuration.getString(CK_ICON_URL),
+        final String color = configuration.getString(CK_COLOR);
+        SlackMessage message = new SlackMessage(
+                configuration.getString(CK_MESSAGE_ICON),
                 buildMessage(stream, msg),
                 configuration.getString(CK_USER_NAME),
                 configuration.getString(CK_CHANNEL),
@@ -71,22 +72,25 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         );
 
         // Add attachments if requested.
-        if (!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_ATTACHMENT)) {
-            slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-            slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+        if (configuration.getBoolean(CK_ADD_STREAM_INFO)) {
+            SlackMessage.Attachment attachment = message.addAttachment("Stream", color, null, null, null);
+            attachment.addField(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+            attachment.addField(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
+        }
 
+        int count = configuration.getInt(CK_ADD_BLITEMS);
+        if (!configuration.getBoolean(CK_SHORT_MODE) && count > 0) {
+            SlackMessage.Attachment attachment = message.addAttachment(null, color, null, null, null);
             for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
                 if (Message.RESERVED_FIELDS.contains(field.getKey())) {
                     continue;
                 }
-
-                slackMessage.addAttachment(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
+                attachment.addField(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
             }
-
         }
 
         try {
-            client.send(slackMessage);
+            client.send(message);
         } catch (SlackClient.SlackClientException e) {
             throw new RuntimeException("Could not send message to Slack.", e);
         }
@@ -96,18 +100,21 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         if (configuration.getBoolean(CK_SHORT_MODE)) {
             return msg.getTimestamp().toDateTime(DateTimeZone.getDefault()).toString(DateTimeFormat.shortTime()) + ": " + msg.getMessage();
         }
-
         String graylogUri = configuration.getString(CK_GRAYLOG2_URL);
-        boolean notifyChannel = configuration.getBoolean(CK_NOTIFY_CHANNEL);
+        String notifyUser = configuration.getString(CK_NOTIFY_USER);
 
-        String titleLink;
-        if (!isNullOrEmpty(graylogUri)) {
-            titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
-        } else {
-            titleLink = "_" + stream.getTitle() + "_";
+        StringBuilder message = new StringBuilder();
+        if (!isNullOrEmpty(notifyUser)) {
+            notifyUser = StringReplacement.replaceWithPrefix(notifyUser, "@", msg.getFields());
+            message.append(notifyUser).append(' ');
         }
-
-        return (notifyChannel ? "@channel " : "") + "*New message in Graylog stream " + titleLink + "*:\n" + "> " + msg.getMessage();
+        message.append("*New message in Graylog stream ");
+        if (!isNullOrEmpty(graylogUri)) {
+            message.append('<').append(buildStreamLink(graylogUri, stream)).append('|').append(stream.getTitle()).append('>');
+        } else {
+            message.append('_').append(stream.getTitle()).append('_');
+        }
+        return message.append("*:\n> ").append(msg.getMessage()).toString();
     }
 
     @Override

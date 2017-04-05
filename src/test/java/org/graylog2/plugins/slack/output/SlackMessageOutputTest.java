@@ -18,10 +18,9 @@ public class SlackMessageOutputTest {
             .put("channel", "#test_channel")
             .put("user_name", "test_user_name")
             .put("add_attachment", true)
-            .put("notify_channel", true)
+            .put("notify_user", "@doe")
             .put("link_names", true)
-            .put("icon_url", "http://example.com")
-            .put("icon_emoji", "test_icon_emoji")
+            .put("message_icon", "http://example.com")
             .put("graylog2_url", "http://graylog2.example.com")
             .put("color", "#FF0000")
             .build();
@@ -32,7 +31,7 @@ public class SlackMessageOutputTest {
 
         final Map<String, Object> attributes = output.getConfiguration();
         assertThat(attributes.keySet(), hasItems("webhook_url", "channel", "user_name", "add_attachment",
-                "notify_channel", "link_names", "icon_url", "icon_emoji", "graylog2_url", "color"));
+                "notify_user", "link_names", "message_icon", "graylog2_url", "color"));
     }
 
     @Test
@@ -63,16 +62,6 @@ public class SlackMessageOutputTest {
     @Test
     public void checkConfigurationWorksWithCorrectProxyAddress() throws MessageOutputConfigurationException {
         new SlackMessageOutput(null, validConfigurationWithValue("proxy_address", "http://127.0.0.1:1080"));
-    }
-    
-    @Test(expected = MessageOutputConfigurationException.class)
-    public void checkConfigurationFailsIfIconUrlIsInvalid() throws MessageOutputConfigurationException {
-        new SlackMessageOutput(null, validConfigurationWithValue("icon_url", "Definitely$$Not#A!!URL"));
-    }
-
-    @Test(expected = MessageOutputConfigurationException.class)
-    public void checkConfigurationFailsIfIconUrlIsNotHttpOrHttps() throws MessageOutputConfigurationException {
-        new SlackMessageOutput(null, validConfigurationWithValue("icon_url", "ftp://example.net"));
     }
 
     @Test(expected = MessageOutputConfigurationException.class)
