@@ -56,6 +56,8 @@ public class SlackClient {
             throw new SlackClientException("Could not open connection to Slack API", e);
         }
 
+        if (LOG.isTraceEnabled())
+            LOG.trace("{}", message.getJsonString());
         try (final Writer writer = new OutputStreamWriter(conn.getOutputStream())) {
             writer.write(message.getJsonString());
             writer.flush();
@@ -91,6 +93,7 @@ public class SlackClient {
 
 
     public class SlackClientException extends Exception {
+        private final static long serialVersionUID = 4148723128396736l;
 
         public SlackClientException(String msg) {
             super(msg);
