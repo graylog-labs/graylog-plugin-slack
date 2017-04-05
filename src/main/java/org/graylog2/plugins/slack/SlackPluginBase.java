@@ -30,7 +30,6 @@ public class SlackPluginBase {
     public static final String CK_FOOTER_TEXT = "footer_text";
     public static final String CK_FOOTER_ICON_URL = "footer_icon_url";
     public static final String CK_FOOTER_TS_FIELD = "ts_field";
-    public static final String CK_ACKNOWLEDGE = "acknowledge";
 
     protected static ConfigurationRequest configuration() {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();

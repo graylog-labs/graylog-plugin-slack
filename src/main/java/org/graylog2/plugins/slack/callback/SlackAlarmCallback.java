@@ -18,8 +18,6 @@ import org.graylog2.plugins.slack.SlackPluginBase;
 import org.graylog2.plugins.slack.StringReplacement;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +27,6 @@ import java.util.Map;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback {
-    private static final Logger LOG = LoggerFactory.getLogger(SlackClient.class);
     private Configuration configuration;
 
     @Override
@@ -72,7 +69,6 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         // Create Attachment for Backlog and Fields section
         final List<Message> backlogItems = getAlarmBacklog(result);
         int count = configuration.getInt(CK_ADD_BLITEMS);
-        LOG.info("Backlog item setting size {}", count);
         if (count > 0) {
             final int blSize = backlogItems.size();
             if (blSize < count) {
