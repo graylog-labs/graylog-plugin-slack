@@ -133,7 +133,21 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
             titleLink = "_" + stream.getTitle() + "_";
         }
 
-        return (notifyChannel ? "@channel " : "") + "*Alert for Graylog stream " + titleLink + "*:\n" + "> " + result.getResultDescription();
+        // Build Slack Message
+        StringBuilder message = new StringBuilder(result.getResultDescription()).append("\n");
+        AlertCondition condition = result.getTriggeredCondition();
+        if (condition != null) {
+            String description = condition.getDescription();
+            if (description != null && !description.isEmpty()) {
+                message.append(String.format("*Triggered Condition: %s\n", condition.getDescription()));
+            }
+        }
+
+        String audience = notifyChannel ? "@channel " : "";
+        return String.format("%s*Alert for Graylog stream %s*:\n> %s",
+                audience,
+                titleLink,
+                result.getResultDescription());
     }
 
     @Override
