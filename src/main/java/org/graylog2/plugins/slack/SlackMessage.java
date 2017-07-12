@@ -35,13 +35,12 @@ public class SlackMessage {
         this.userName = userName;
         this.channel = channel;
         this.linkNames = linkNames;
-
         this.attachments = Lists.newArrayList();
     }
 
     public String getJsonString() {
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
-        final Map<String, Object> params = new HashMap<String, Object>(){{
+        final Map<String, Object> params = new HashMap<String, Object>() {{
             put("channel", channel);
             put("text", message);
             put("link_names", linkNames ? "1" : "0");

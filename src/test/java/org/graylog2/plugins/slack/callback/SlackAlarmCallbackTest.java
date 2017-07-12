@@ -1,5 +1,6 @@
 package org.graylog2.plugins.slack.callback;
 
+import com.floreysoft.jmte.Engine;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -31,7 +32,7 @@ public class SlackAlarmCallbackTest {
 
     @Before
     public void setUp() {
-        alarmCallback = new SlackAlarmCallback();
+        alarmCallback = new SlackAlarmCallback(Engine.createDefaultEngine());
     }
 
     @Test
