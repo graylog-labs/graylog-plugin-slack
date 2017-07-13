@@ -35,7 +35,7 @@ public class SlackConfigurationRequestFactory {
                         " \"backlog_size\"." +
                         "Note: If you have multiple backlog items, you can \"index\" into their properties " +
                         "to get the corresponding backlog field value" +
-                        "IE: some_backlog_field[2] will get the value of the second \"some_backlog_field\" field.",
+                        "IE: field.some_backlog_field[2] will get the value of the second \"some_backlog_field\" field.",
                 ConfigurationField.Optional.OPTIONAL,
                 TextField.Attribute.TEXTAREA)
         );

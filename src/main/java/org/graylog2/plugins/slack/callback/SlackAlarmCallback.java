@@ -160,19 +160,12 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         String graylogUri = configuration.getString(SlackConfiguration.CK_GRAYLOG2_URL);
         model.put("stream", stream);
         model.put("check_result", result);
-        if (!isNullOrEmpty(graylogUri)) model.put("stream_url", buildStreamLink(graylogUri, stream));
         model.put("alert_condition", result.getTriggeredCondition());
         model.put("backlog", backlog);
         model.put("backlog_size", backlog.size());
-
-        // Load all matched fields
-        result.getMatchingMessages().forEach(msg -> {
-            int index = result.getMatchingMessages().indexOf(msg) + 1;
-            msg.getFields().forEach((name, value) -> {
-                model.put(String.format("%s[%d]", name, index), value);
-                if (index == 1) model.put(name, value);
-            });
-        });
+        if (!isNullOrEmpty(graylogUri)) {
+            model.put("stream_url", buildStreamLink(graylogUri, stream));
+        }
 
         return model;
     }
