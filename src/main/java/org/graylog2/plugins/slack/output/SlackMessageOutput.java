@@ -11,7 +11,9 @@ import org.graylog2.plugin.inputs.annotations.FactoryClass;
 import org.graylog2.plugin.outputs.MessageOutput;
 import org.graylog2.plugin.outputs.MessageOutputConfigurationException;
 import org.graylog2.plugin.streams.Stream;
-import org.graylog2.plugins.slack.*;
+import org.graylog2.plugins.slack.SlackClient;
+import org.graylog2.plugins.slack.SlackMessage;
+import org.graylog2.plugins.slack.SlackPluginBase;
 import org.graylog2.plugins.slack.configuration.SlackConfiguration;
 import org.graylog2.plugins.slack.configuration.SlackConfigurationRequestFactory;
 import org.joda.time.DateTimeZone;
@@ -67,31 +69,10 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         String message = shortMode ? buildShortMessageBody(msg) : buildFullMessageBody(stream, msg);
         SlackMessage slackMessage = createSlackMessage(configuration, message);
 
-        // Add attachments if requested.
-        if (!shortMode && configuration.getBoolean(SlackConfiguration.CK_ADD_ATTACHMENT)) {
-            buildAttachments(msg, slackMessage);
-        }
-
         try {
             client.send(slackMessage);
         } catch (SlackClient.SlackClientException e) {
             throw new RuntimeException("Could not send message to Slack.", e);
-        }
-    }
-
-    private void buildAttachments(Message msg, SlackMessage slackMessage) {
-        slackMessage.addAttachment(
-                new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-        slackMessage.addAttachment(
-                new SlackMessage.AttachmentField("Source", msg.getSource(), true));
-
-        for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
-            if (Message.RESERVED_FIELDS.contains(field.getKey())) {
-                continue;
-            }
-
-            slackMessage.addAttachment(
-                    new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
         }
     }
 
@@ -107,7 +88,8 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         }
 
         String audience = notifyChannel ? "@channel " : "";
-        return String.format("%s*New message in Graylog stream %s*:\n> %s", audience, titleLink, msg.getMessage());
+        return String.format("%s*New message in Graylog stream %s*:\n> %s",
+                audience, titleLink, msg.getMessage());
     }
 
     private String buildShortMessageBody(Message msg) {

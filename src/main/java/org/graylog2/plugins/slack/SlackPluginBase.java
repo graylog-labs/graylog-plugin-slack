@@ -11,6 +11,18 @@ import java.util.Arrays;
 
 public class SlackPluginBase {
 
+    protected Configuration configuration;
+
+    public void setConfiguration(final Configuration config) throws ConfigurationException {
+        this.configuration = config;
+
+        try {
+            checkConfiguration(config);
+        } catch (ConfigurationException e) {
+            throw new ConfigurationException("Configuration error. " + e.getMessage());
+        }
+    }
+
     protected static void checkConfiguration(Configuration configuration) throws ConfigurationException {
         if (!configuration.stringIsSet(SlackConfiguration.CK_WEBHOOK_URL)) {
             throw new ConfigurationException(SlackConfiguration.CK_WEBHOOK_URL + " is mandatory and must not be empty.");
@@ -65,5 +77,4 @@ public class SlackPluginBase {
                 configuration.getBoolean(SlackConfiguration.CK_LINK_NAMES)
         );
     }
-
 }

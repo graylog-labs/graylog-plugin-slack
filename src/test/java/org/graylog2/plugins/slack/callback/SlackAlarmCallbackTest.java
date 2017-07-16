@@ -20,7 +20,6 @@ public class SlackAlarmCallbackTest {
             .put("webhook_url", "https://www.example.org/")
             .put("channel", "#test_channel")
             .put("user_name", "test_user_name")
-            .put("add_attachment", true)
             .put("notify_channel", true)
             .put("link_names", true)
             .put("icon_url", "http://example.com")
@@ -47,7 +46,7 @@ public class SlackAlarmCallbackTest {
         alarmCallback.initialize(configuration);
 
         final Map<String, Object> attributes = alarmCallback.getAttributes();
-        assertThat(attributes.keySet(), hasItems("webhook_url", "channel", "user_name", "add_attachment",
+        assertThat(attributes.keySet(), hasItems("webhook_url", "channel", "user_name",
                 "notify_channel", "link_names", "icon_url", "icon_emoji", "graylog2_url", "color"));
     }
 
@@ -73,10 +72,10 @@ public class SlackAlarmCallbackTest {
     public void checkConfigurationFailsIfChannelDoesAcceptDirectMessages() throws AlarmCallbackConfigurationException, ConfigurationException {
         alarmCallback.initialize(validConfigurationWithValue("channel", "@john"));
     }
-    
+
     @Test
     public void checkConfigurationWorksWithCorrectProxyAddress() throws AlarmCallbackConfigurationException, ConfigurationException {
-    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "https://127.0.0.1:1080"));
+        alarmCallback.initialize(validConfigurationWithValue("proxy_address", "https://127.0.0.1:1080"));
     }
 
     @Test(expected = AlarmCallbackConfigurationException.class)
@@ -106,23 +105,23 @@ public class SlackAlarmCallbackTest {
 
     @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfProxyAddressIsInvalid() throws AlarmCallbackConfigurationException, ConfigurationException {
-    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "Definitely$$Not#A!!URL"));
+        alarmCallback.initialize(validConfigurationWithValue("proxy_address", "Definitely$$Not#A!!URL"));
     }
 
     @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfProxyAddressIsMissingAPort() throws AlarmCallbackConfigurationException, ConfigurationException {
-    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "127.0.0.1"));
+        alarmCallback.initialize(validConfigurationWithValue("proxy_address", "127.0.0.1"));
     }
-    
+
     @Test(expected = AlarmCallbackConfigurationException.class)
     public void checkConfigurationFailsIfProxyAddressHasWrongFormat() throws AlarmCallbackConfigurationException, ConfigurationException {
-    	alarmCallback.initialize(validConfigurationWithValue("proxy_address", "vpn://127.0.0.1"));
+        alarmCallback.initialize(validConfigurationWithValue("proxy_address", "vpn://127.0.0.1"));
     }
-    
+
     @Test
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),
-                hasItems("webhook_url", "channel", "user_name", "add_attachment", "notify_channel", "link_names",
+                hasItems("webhook_url", "channel", "user_name", "notify_channel", "link_names",
                         "icon_url", "icon_emoji", "graylog2_url", "color"));
     }
 

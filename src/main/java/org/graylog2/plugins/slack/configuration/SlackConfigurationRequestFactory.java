@@ -23,19 +23,33 @@ public class SlackConfigurationRequestFactory {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
 
         configurationRequest.addField(new TextField(
-                SlackConfiguration.CK_CUSTOM_MESSAGE, "Custom Message", "",
-                "Custom message to be appended below the alert message. " +
-                        "The following properties are available for template building, " +
-                        "as well as all fields on the alert backlog items: " +
+                SlackConfiguration.CK_CUSTOM_MESSAGE, "Custom Message",
+                "##########\n" +
+                        "Alert Description: ${check_result.resultDescription}\n" +
+                        "Date: ${check_result.triggeredAt}\n" +
+                        "Stream ID: ${stream.id}\n" +
+                        "Stream title: ${stream.title}\n" +
+                        "Stream description: ${stream.description}\n" +
+                        "Alert Condition Title: ${alertCondition.title}\n" +
+                        "${if stream_url}Stream URL: ${stream_url}${end}\n" +
+                        "\n" +
+                        "Triggered condition: ${check_result.triggeredCondition}\n" +
+                        "##########\n" +
+                        "\n" +
+                        "${if backlog}Last messages accounting for this alert:\n" +
+                        "${foreach backlog message}${message}\n" +
+                        "\n" +
+                        "${end}${else}<No backlog>\n" +
+                        "${end}\n",
+                "Custom message to be appended below the alert title. " +
+                        "The following properties are available for template building: " +
                         "\"stream\", " +
                         "\"check_result\"," +
                         " \"stream_url\"," +
                         " \"alert_condition\"," +
                         " \"backlog\"," +
                         " \"backlog_size\"." +
-                        "Note: If you have multiple backlog items, you can \"index\" into their properties " +
-                        "to get the corresponding backlog field value" +
-                        "IE: field.some_backlog_field[2] will get the value of the second \"some_backlog_field\" field.",
+                        "See http://docs.graylog.org/en/1.3/pages/streams.html for more details.",
                 ConfigurationField.Optional.OPTIONAL,
                 TextField.Attribute.TEXTAREA)
         );
@@ -57,10 +71,6 @@ public class SlackConfigurationRequestFactory {
                 SlackConfiguration.CK_COLOR, "Color", "#FF0000",
                 "Color to use for Slack message",
                 ConfigurationField.Optional.NOT_OPTIONAL)
-        );
-        configurationRequest.addField(new BooleanField(
-                SlackConfiguration.CK_ADD_ATTACHMENT, "Include more information", true,
-                "Add structured information as message attachment")
         );
         configurationRequest.addField(new NumberField(
                 SlackConfiguration.CK_ADD_BLITEMS, "Backlog items", 5,
@@ -93,11 +103,6 @@ public class SlackConfigurationRequestFactory {
         configurationRequest.addField(new TextField(
                 SlackConfiguration.CK_PROXY_ADDRESS, "Proxy", null,
                 "Please insert the proxy information in the follwoing format: <ProxyAddress>:<Port>",
-                ConfigurationField.Optional.OPTIONAL)
-        );
-        configurationRequest.addField(new TextField(
-                SlackConfiguration.CK_FIELDS, "Custom fields", null,
-                "Add fields into alert (field1, field2...)",
                 ConfigurationField.Optional.OPTIONAL)
         );
 
