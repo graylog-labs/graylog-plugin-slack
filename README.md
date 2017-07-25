@@ -1,7 +1,7 @@
 Slack/Mattermost Plugin for Graylog
 ========================
 
-[![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-slack.svg)](https://travis-ci.org/Graylog2/graylog-plugin-slack)
+[![Build Status](https://travis-ci.org/graylog-labs/graylog-plugin-slack.svg)](https://travis-ci.org/graylog-labs/graylog-plugin-slack)
 
 **Required Graylog version:** 2.0 and later.
 
