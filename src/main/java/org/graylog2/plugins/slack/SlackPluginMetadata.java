@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.Set;
 
 public class SlackPluginMetadata implements PluginMetaData {
+    private static final String PLUGIN_PROPERTIES = "org.graylog.plugins.graylog-plugin-slack/graylog-plugin.properties";
+
     @Override
     public String getUniqueId() {
         return SlackAlarmCallback.class.getCanonicalName();
@@ -32,7 +34,7 @@ public class SlackPluginMetadata implements PluginMetaData {
 
     @Override
     public Version getVersion() {
-        return new Version(2, 4, 0);
+        return Version.fromPluginProperties(this.getClass(), PLUGIN_PROPERTIES, "version", Version.from(2, 4, 0, "unknown"));
     }
 
     @Override
@@ -42,7 +44,7 @@ public class SlackPluginMetadata implements PluginMetaData {
 
     @Override
     public Version getRequiredVersion() {
-        return new Version(2, 0, 0);
+        return Version.fromPluginProperties(this.getClass(), PLUGIN_PROPERTIES, "graylog.version", Version..from(2, 0, 0, "unknown"));
     }
 
     @Override
