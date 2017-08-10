@@ -34,7 +34,7 @@ public class SlackPluginMetadata implements PluginMetaData {
 
     @Override
     public Version getVersion() {
-        return Version.fromPluginProperties(this.getClass(), PLUGIN_PROPERTIES, "version", Version.from(2, 4, 0, "unknown"));
+        return Version.fromPluginProperties(this.getClass(), PLUGIN_PROPERTIES, "version", Version.from(2, 4, 1, "unknown"));
     }
 
     @Override
