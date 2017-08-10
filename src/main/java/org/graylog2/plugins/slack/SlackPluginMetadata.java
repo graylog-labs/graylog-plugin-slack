@@ -44,7 +44,7 @@ public class SlackPluginMetadata implements PluginMetaData {
 
     @Override
     public Version getRequiredVersion() {
-        return Version.fromPluginProperties(this.getClass(), PLUGIN_PROPERTIES, "graylog.version", Version..from(2, 0, 0, "unknown"));
+        return Version.fromPluginProperties(this.getClass(), PLUGIN_PROPERTIES, "graylog.version", Version.from(2, 0, 0, "unknown"));
     }
 
     @Override
