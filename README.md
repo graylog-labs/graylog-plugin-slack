@@ -1,35 +1,29 @@
-Slack/Mattermost Plugin for Graylog
+Slack/Mattermost Plugin [Fork] for Graylog
 ========================
-
-[![Build Status](https://travis-ci.org/Graylog2/graylog-plugin-slack.svg)](https://travis-ci.org/Graylog2/graylog-plugin-slack)
 
 **Required Graylog version:** 2.0 and later.
 
-Please use version 2.1.0 of this plugin if you are still running Graylog 1.x
+Note: This is a forked plugin from the official repository because...
+* It should not take six months for a simple pull request to get reviewed.
+* Support for templated messages obviated many of the older features, so they were removed.
 
 #### Detailed alarm notification and message output:
 
-![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot.png)
+![](https://github.com/Aenima4six2/graylog-plugin-slack/blob/master/screenshot.png)
+![](https://github.com/Aenima4six2/graylog-plugin-slack/blob/master/screenshot2.png)
 
 This plugin can notify [Slack](https://www.slack.com) or [Mattermost](http://www.mattermost.org) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
 
 #### Short mode message output:
 
-![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot-short-mode.png)
+![](https://github.com/Aenima4six2/graylog-plugin-slack/blob/master/screenshot-short-mode.png)
 
 Great for streams with higher message throughput. The screenshot shows the output of a nightly task that updates information of the Graylog Marketplace.
 
-## v2.0 upgrade notes
+## Changes in v3.0
 
-**Alarm callbacks created with previous plugin versions will be marked as invalid and should be removed using the web interface.** Please create completely new alarm callbacks. Besides that you can just replace the old .jar file in your plugins folder with the new one and restart graylog-server.
+*Templated message are now supported. They use the same format as email alerts.
 
-## Changes in v2.0
-
-* We are now using the Slack Incoming Webhooks instead of API tokens. This way the plugin is no longer bound to a user.
-* Now includes message output plugin. You can forward messages from a (low throughput) stream directly into Slack. For example for specific error messages or events that happen on your monitored devices and applications. (We are using to be notified about new [Graylog Marketplace](https://marketplace.graylog.org/) submissions for example.)
-* You can now define a color to use. For example red for alerts and green for general notifications.
-* Message can not only be sent to a channel but also as a private message to users. The syntax is *#channel* to send into a channel or *@username* for a private message.
-* Several bugfixes and improvements
 
 ## Installation
 
