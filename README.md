@@ -27,7 +27,7 @@ Great for streams with higher message throughput. The screenshot shows the outpu
 
 ## Installation
 
-[Download the plugin](https://github.com/Graylog2/graylog-plugin-slack/releases)
+[Download the plugin](https://github.com/Aenima4six2/graylog-plugin-slack/blob/master/target/graylog-plugin-slack-3.0.0.jar)
 and place the `.jar` file in your Graylog plugin directory. The plugin directory
 is the `plugins/` folder relative from your `graylog-server` directory by default
 and can be configured in your `graylog.conf` file.
