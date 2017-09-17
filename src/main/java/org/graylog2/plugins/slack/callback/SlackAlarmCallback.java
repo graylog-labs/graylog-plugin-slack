@@ -153,6 +153,6 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
 
     @Override
     public String getName() {
-        return "Slack alarm callback";
+        return "Slack Alarm Callback";
     }
 }
