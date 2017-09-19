@@ -19,7 +19,7 @@ public class SlackAlarmCallbackTest {
             .put("webhook_url", "https://www.example.org/")
             .put("channel", "#test_channel")
             .put("user_name", "test_user_name")
-            .put("add_attachment", true)
+            .put("add_stream_info", true)
             .put("notify_channel", true)
             .put("link_names", true)
             .put("icon_url", "http://example.com")
@@ -46,7 +46,7 @@ public class SlackAlarmCallbackTest {
         alarmCallback.initialize(configuration);
 
         final Map<String, Object> attributes = alarmCallback.getAttributes();
-        assertThat(attributes.keySet(), hasItems("webhook_url", "channel", "user_name", "add_attachment",
+        assertThat(attributes.keySet(), hasItems("webhook_url", "channel", "user_name", "add_stream_info",
                 "notify_channel", "link_names", "icon_url", "icon_emoji", "graylog2_url", "color"));
     }
 
@@ -121,7 +121,7 @@ public class SlackAlarmCallbackTest {
     @Test
     public void testGetRequestedConfiguration() {
         assertThat(alarmCallback.getRequestedConfiguration().asList().keySet(),
-                hasItems("webhook_url", "channel", "user_name", "add_attachment", "notify_channel", "link_names",
+                hasItems("webhook_url", "channel", "user_name", "add_stream_info", "notify_channel", "link_names",
                         "icon_url", "icon_emoji", "graylog2_url", "color"));
     }
 

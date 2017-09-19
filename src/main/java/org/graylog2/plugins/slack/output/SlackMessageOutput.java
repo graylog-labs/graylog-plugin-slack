@@ -60,8 +60,8 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
 
     @Override
     public void write(Message msg) throws Exception {
-        SlackMessage slackMessage = new SlackMessage(
-                configuration.getString(CK_COLOR),
+        final String color = configuration.getString(CK_COLOR);
+        SlackMessage message = new SlackMessage(
                 configuration.getString(CK_ICON_EMOJI),
                 configuration.getString(CK_ICON_URL),
                 buildMessage(stream, msg),
@@ -71,22 +71,26 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         );
 
         // Add attachments if requested.
-        if (!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_ATTACHMENT)) {
-            slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-            slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+        if (configuration.getBoolean(CK_ADD_STREAM_INFO)) {
+            SlackMessage.Attachment attachment = message.addAttachment("Stream", color, null, null, null);
+            attachment.addField(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+            attachment.addField(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
+        }
 
+        int count = configuration.getInt(CK_ADD_BLITEMS);
+        if (!configuration.getBoolean(CK_SHORT_MODE) && count > 0) {
+            SlackMessage.Attachment attachment = message.addAttachment(null, color, null, null, null);
             for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
                 if (Message.RESERVED_FIELDS.contains(field.getKey())) {
                     continue;
                 }
-
-                slackMessage.addAttachment(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
+                attachment.addField(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
             }
 
         }
 
         try {
-            client.send(slackMessage);
+            client.send(message);
         } catch (SlackClient.SlackClientException e) {
             throw new RuntimeException("Could not send message to Slack.", e);
         }
