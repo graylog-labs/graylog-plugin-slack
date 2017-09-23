@@ -27,7 +27,15 @@ public class SlackMessage {
 
     private final List<AttachmentField> attachments;
 
-    public SlackMessage(String color, String iconEmoji, String iconUrl, String message, String userName, String channel, boolean linkNames) {
+    public SlackMessage(
+            String color,
+            String iconEmoji,
+            String iconUrl,
+            String message,
+            String userName,
+            String channel,
+            boolean linkNames
+    ) {
         this.color = color;
         this.iconEmoji = iconEmoji;
         this.iconUrl = iconUrl;
