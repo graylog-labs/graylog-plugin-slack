@@ -1,22 +1,18 @@
-Slack/Mattermost Plugin [Fork] for Graylog
+Slack/Mattermost Plugin for Graylog
 ========================
 
 **Required Graylog version:** 2.0 and later.
 
-Note: This is a forked plugin from the official repository because...
-* It should not take six months for a simple pull request to get reviewed.
-* Support for templated messages obviated many of the older features, so they were removed.
-
 #### Detailed alarm notification and message output:
 
-![](https://github.com/Aenima4six2/graylog-plugin-slack/blob/master/screenshot.png)
-![](https://github.com/Aenima4six2/graylog-plugin-slack/blob/master/screenshot2.png)
+![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot.png)
+![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot2.png)
 
 This plugin can notify [Slack](https://www.slack.com) or [Mattermost](http://www.mattermost.org) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
 
 #### Short mode message output:
 
-![](https://github.com/Aenima4six2/graylog-plugin-slack/blob/master/screenshot-short-mode.png)
+![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot-short-mode.png)
 
 Great for streams with higher message throughput. The screenshot shows the output of a nightly task that updates information of the Graylog Marketplace.
 
@@ -27,7 +23,7 @@ Great for streams with higher message throughput. The screenshot shows the outpu
 
 ## Installation
 
-[Download the plugin](https://github.com/Aenima4six2/graylog-plugin-slack/blob/master/target/graylog-plugin-slack-3.0.0.jar)
+[Download the plugin](https://github.com/Graylog2/graylog-plugin-slack/releases)
 and place the `.jar` file in your Graylog plugin directory. The plugin directory
 is the `plugins/` folder relative from your `graylog-server` directory by default
 and can be configured in your `graylog.conf` file.
