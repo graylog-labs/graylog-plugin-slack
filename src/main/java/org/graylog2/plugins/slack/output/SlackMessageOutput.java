@@ -14,6 +14,8 @@ import org.graylog2.plugin.streams.Stream;
 import org.graylog2.plugins.slack.SlackClient;
 import org.graylog2.plugins.slack.SlackMessage;
 import org.graylog2.plugins.slack.SlackPluginBase;
+import org.graylog2.plugins.slack.configuration.SlackConfiguration;
+import org.graylog2.plugins.slack.configuration.SlackConfigurationRequestFactory;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 
@@ -32,7 +34,10 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
     private final SlackClient client;
 
     @Inject
-    public SlackMessageOutput(@Assisted Stream stream, @Assisted Configuration configuration) throws MessageOutputConfigurationException {
+    public SlackMessageOutput(
+            @Assisted Stream stream,
+            @Assisted Configuration configuration)
+            throws MessageOutputConfigurationException {
         this.configuration = configuration;
         this.stream = stream;
 
@@ -60,30 +65,9 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
 
     @Override
     public void write(Message msg) throws Exception {
-        SlackMessage slackMessage = new SlackMessage(
-                configuration.getString(CK_COLOR),
-                configuration.getString(CK_ICON_EMOJI),
-                configuration.getString(CK_ICON_URL),
-                buildMessage(stream, msg),
-                configuration.getString(CK_USER_NAME),
-                configuration.getString(CK_CHANNEL),
-                configuration.getBoolean(CK_LINK_NAMES)
-        );
-
-        // Add attachments if requested.
-        if (!configuration.getBoolean(CK_SHORT_MODE) && configuration.getBoolean(CK_ADD_ATTACHMENT)) {
-            slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-            slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
-
-            for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
-                if (Message.RESERVED_FIELDS.contains(field.getKey())) {
-                    continue;
-                }
-
-                slackMessage.addAttachment(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
-            }
-
-        }
+        boolean shortMode = configuration.getBoolean(SlackConfiguration.CK_SHORT_MODE);
+        String message = shortMode ? buildShortMessageBody(msg) : buildFullMessageBody(stream, msg);
+        SlackMessage slackMessage = createSlackMessage(configuration, message);
 
         try {
             client.send(slackMessage);
@@ -92,13 +76,9 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         }
     }
 
-    public String buildMessage(Stream stream, Message msg) {
-        if (configuration.getBoolean(CK_SHORT_MODE)) {
-            return msg.getTimestamp().toDateTime(DateTimeZone.getDefault()).toString(DateTimeFormat.shortTime()) + ": " + msg.getMessage();
-        }
-
-        String graylogUri = configuration.getString(CK_GRAYLOG2_URL);
-        boolean notifyChannel = configuration.getBoolean(CK_NOTIFY_CHANNEL);
+    private String buildFullMessageBody(Stream stream, Message msg) {
+        String graylogUri = configuration.getString(SlackConfiguration.CK_GRAYLOG2_URL);
+        boolean notifyChannel = configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
 
         String titleLink;
         if (!isNullOrEmpty(graylogUri)) {
@@ -107,7 +87,16 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
             titleLink = "_" + stream.getTitle() + "_";
         }
 
-        return (notifyChannel ? "@channel " : "") + "*New message in Graylog stream " + titleLink + "*:\n" + "> " + msg.getMessage();
+        String audience = notifyChannel ? "@channel " : "";
+        return String.format("%s*New message in Graylog stream %s*:\n> %s",
+                audience, titleLink, msg.getMessage());
+    }
+
+    private String buildShortMessageBody(Message msg) {
+        return String.format("%s: %s", msg.getTimestamp()
+                .toDateTime(DateTimeZone.getDefault())
+                .toString(DateTimeFormat.shortTime()), msg.getMessage()
+        );
     }
 
     @Override
@@ -137,7 +126,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
     public static class Config extends MessageOutput.Config {
         @Override
         public ConfigurationRequest getRequestedConfiguration() {
-            return configuration();
+            return SlackConfigurationRequestFactory.createSlackMessageOutputConfigurationRequest();
         }
     }
 
@@ -146,5 +135,4 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
             super("Slack Output", false, "", "Writes messages to a Slack chat room.");
         }
     }
-
 }
