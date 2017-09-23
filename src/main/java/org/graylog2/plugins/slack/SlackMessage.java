@@ -27,7 +27,15 @@ public class SlackMessage {
 
     private final List<AttachmentField> attachments;
 
-    public SlackMessage(String color, String iconEmoji, String iconUrl, String message, String userName, String channel, boolean linkNames) {
+    public SlackMessage(
+            String color,
+            String iconEmoji,
+            String iconUrl,
+            String message,
+            String userName,
+            String channel,
+            boolean linkNames
+    ) {
         this.color = color;
         this.iconEmoji = iconEmoji;
         this.iconUrl = iconUrl;
@@ -35,13 +43,12 @@ public class SlackMessage {
         this.userName = userName;
         this.channel = channel;
         this.linkNames = linkNames;
-
         this.attachments = Lists.newArrayList();
     }
 
     public String getJsonString() {
         // See https://api.slack.com/methods/chat.postMessage for valid parameters
-        final Map<String, Object> params = new HashMap<String, Object>(){{
+        final Map<String, Object> params = new HashMap<String, Object>() {{
             put("channel", channel);
             put("text", message);
             put("link_names", linkNames ? "1" : "0");

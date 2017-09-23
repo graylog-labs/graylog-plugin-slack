@@ -10,7 +10,7 @@ import java.util.Collections;
 public class SlackPlugin implements Plugin {
     @Override
     public Collection<PluginModule> modules() {
-        return Collections.<PluginModule>singleton(new SlackPluginModule());
+        return Collections.singleton(new SlackPluginModule());
     }
 
     @Override
