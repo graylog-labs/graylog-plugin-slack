@@ -77,4 +77,13 @@ public class SlackPluginBase {
                 configuration.getBoolean(SlackConfiguration.CK_LINK_NAMES)
         );
     }
+
+    protected String buildMessageLink(String baseUrl, String index, String id) {
+        if (!baseUrl.endsWith("/")) {
+            baseUrl = baseUrl + "/";
+        }
+
+        return baseUrl + "messages/" + index + "/" + id;
+    }
+
 }
