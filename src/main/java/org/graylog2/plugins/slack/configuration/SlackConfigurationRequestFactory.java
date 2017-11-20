@@ -30,7 +30,7 @@ public class SlackConfigurationRequestFactory {
                         "Stream ID: ${stream.id}\n" +
                         "Stream title: ${stream.title}\n" +
                         "Stream description: ${stream.description}\n" +
-                        "Alert Condition Title: ${alertCondition.title}\n" +
+                        "Alert Condition Title: ${alert_condition.title}\n" +
                         "${if stream_url}Stream URL: ${stream_url}${end}\n" +
                         "\n" +
                         "Triggered condition: ${check_result.triggeredCondition}\n" +
