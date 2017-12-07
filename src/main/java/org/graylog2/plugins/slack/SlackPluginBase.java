@@ -63,7 +63,7 @@ public class SlackPluginBase {
             baseUrl = baseUrl + "/";
         }
 
-        return baseUrl + "streams/" + stream.getId() + "/messages?q=*&rangetype=relative&relative=3600";
+        return baseUrl + "streams/" + stream.getId() + "/messages?q=%2A&rangetype=relative&relative=3600";
     }
 
     protected static SlackMessage createSlackMessage(Configuration configuration, String message) {
