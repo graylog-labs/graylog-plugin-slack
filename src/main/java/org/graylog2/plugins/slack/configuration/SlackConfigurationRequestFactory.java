@@ -49,7 +49,7 @@ public class SlackConfigurationRequestFactory {
                         " \"alert_condition\"," +
                         " \"backlog\"," +
                         " \"backlog_size\"." +
-                        "See http://docs.graylog.org/en/1.3/pages/streams.html for more details.",
+                        "See http://docs.graylog.org/en/2.3/pages/streams/alerts.html#email-alert-notification for more details.",
                 ConfigurationField.Optional.OPTIONAL,
                 TextField.Attribute.TEXTAREA)
         );
