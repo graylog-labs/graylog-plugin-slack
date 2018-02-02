@@ -1,6 +1,8 @@
 Slack/Mattermost Plugin for Graylog
 ========================
 
+[![Github Downloads](https://img.shields.io/github/downloads/graylog-labs/graylog-plugin-slack/total.svg)](https://github.com/graylog-labs/graylog-plugin-slack/releases)
+[![GitHub Release](https://img.shields.io/github/release/graylog-labs/graylog-plugin-slack.svg)](https://github.com/graylog-labs/graylog-plugin-slack/releases)
 [![Build Status](https://travis-ci.org/graylog-labs/graylog-plugin-slack.svg)](https://travis-ci.org/graylog-labs/graylog-plugin-slack)
 
 **Required Graylog version:** 2.0 and later.
@@ -9,20 +11,20 @@ Please use version 2.1.0 of this plugin if you are still running Graylog 1.x
 
 #### Detailed alarm notification and message output:
 
-![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot.png)
-![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot2.png)
+![](screenshot.png)
+![](screenshot2.png)
 
 This plugin can notify [Slack](https://www.slack.com) or [Mattermost](http://www.mattermost.org) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
 
 #### Short mode message output:
 
-![](https://github.com/Graylog2/graylog-plugin-slack/blob/master/screenshot-short-mode.png)
+![](screenshot-short-mode.png)
 
 Great for streams with higher message throughput. The screenshot shows the output of a nightly task that updates information of the Graylog Marketplace.
 
 ## Changes in v3.0
 
-*Templated message are now supported. They use the same format as email alerts.
+* Templated message are now supported. They use the same format as email alerts.
 
 
 ## Installation
