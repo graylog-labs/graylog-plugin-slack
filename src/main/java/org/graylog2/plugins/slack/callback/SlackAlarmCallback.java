@@ -45,10 +45,11 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
     }
 
     @Override
-    public void call(Stream stream, AlertCondition.CheckResult result) throws AlarmCallbackException {
+    public void call(Stream stream, AlertCondition.CheckResult result) {
 
         final SlackClient client = new SlackClient(configuration);
-        SlackMessage message = createSlackMessage(configuration, buildFullMessageBody(stream, result));
+        String text = buildFullMessageBody(stream, result);
+        SlackMessage message = createSlackMessage(configuration, text);
 
         try {
             client.send(message);
@@ -78,8 +79,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         }
 
         String audience = notifyChannel ? "@channel " : "";
-        return String.format("%s*Alert for Graylog stream %s*:\n> %s",
-                audience, titleLink, message.toString());
+        return String.format("%s*Alert for Graylog stream %s*:\n> %s", audience, titleLink, message.toString());
     }
 
 
@@ -129,7 +129,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
     }
 
     @Override
-    public void checkConfiguration() throws ConfigurationException {
+    public void checkConfiguration() {
         /* Never actually called by graylog-server */
     }
 

@@ -1,5 +1,6 @@
 package org.graylog2.plugins.slack.output;
 
+import com.floreysoft.jmte.Engine;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import org.graylog2.plugin.Message;
@@ -19,6 +20,7 @@ import org.graylog2.plugins.slack.configuration.SlackConfigurationRequestFactory
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 public class SlackMessageOutput extends SlackPluginBase implements MessageOutput {
+    private final Engine templateEngine;
     private AtomicBoolean running = new AtomicBoolean(false);
 
     private final Configuration configuration;
@@ -36,10 +39,12 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
     @Inject
     public SlackMessageOutput(
             @Assisted Stream stream,
-            @Assisted Configuration configuration)
-            throws MessageOutputConfigurationException {
+            @Assisted Configuration configuration,
+            Engine templateEngine
+    ) throws MessageOutputConfigurationException {
         this.configuration = configuration;
         this.stream = stream;
+        this.templateEngine = templateEngine;
 
         // Check configuration.
         try {
@@ -64,10 +69,17 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
     }
 
     @Override
-    public void write(Message msg) throws Exception {
+    public void write(Message msg) throws RuntimeException {
         boolean shortMode = configuration.getBoolean(SlackConfiguration.CK_SHORT_MODE);
+        boolean addAttachment = configuration.getBoolean(SlackConfiguration.CK_ADD_ATTACHMENT);
+
         String message = shortMode ? buildShortMessageBody(msg) : buildFullMessageBody(stream, msg);
         SlackMessage slackMessage = createSlackMessage(configuration, message);
+
+        // Add attachments if requested.
+        if (!shortMode && addAttachment) {
+            addAttachment(msg, slackMessage);
+        }
 
         try {
             client.send(slackMessage);
@@ -76,15 +88,33 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         }
     }
 
+    private void addAttachment(Message msg, SlackMessage slackMessage) {
+        slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
+        slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+
+        for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
+            if (Message.RESERVED_FIELDS.contains(field.getKey())) continue;
+            slackMessage.addAttachment(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
+        }
+    }
+
     private String buildFullMessageBody(Stream stream, Message msg) {
         String graylogUri = configuration.getString(SlackConfiguration.CK_GRAYLOG2_URL);
         boolean notifyChannel = configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
 
-        String streamLink;
+        String titleLink;
         if (!isNullOrEmpty(graylogUri)) {
-            streamLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
+            titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
         } else {
-            streamLink = "_" + stream.getTitle() + "_";
+            titleLink = "_" + stream.getTitle() + "_";
+        }
+
+        // Build custom message
+        StringBuilder message = new StringBuilder(msg.getMessage());
+        String template = configuration.getString(SlackConfiguration.CK_CUSTOM_MESSAGE);
+        if (!isNullOrEmpty(template)) {
+            String customMessage = buildCustomMessage(stream, msg, template);
+            message.append("\n").append(customMessage);
         }
 
         String messageLink;
@@ -96,19 +126,39 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         }
 
         String audience = notifyChannel ? "@channel " : "";
-        return String.format("%s*%s in Graylog stream %s*:\n> %s",
-                audience, messageLink, streamLink, msg.getMessage());
+        return String.format("%s*%s in Graylog stream %s*:\n> %s", audience, messageLink, titleLink, message);
+    }
+
+    private String buildCustomMessage(Stream stream, Message msg, String template) {
+        Map<String, Object> model = getModel(stream, msg);
+        try {
+            return templateEngine.transform(template, model);
+        } catch (Exception ex) {
+            return ex.toString();
+        }
+    }
+
+    private Map<String, Object> getModel(Stream stream, Message msg) {
+        Map<String, Object> model = new HashMap<>();
+
+        String graylogUri = configuration.getString(SlackConfiguration.CK_GRAYLOG2_URL);
+        model.put("stream", stream);
+        model.put("message", msg);
+
+        if (!isNullOrEmpty(graylogUri)) {
+            model.put("stream_url", buildStreamLink(graylogUri, stream));
+        }
+
+        return model;
     }
 
     private String buildShortMessageBody(Message msg) {
-        return String.format("%s: %s", msg.getTimestamp()
-                .toDateTime(DateTimeZone.getDefault())
-                .toString(DateTimeFormat.shortTime()), msg.getMessage()
-        );
+        String timeStamp = msg.getTimestamp().toDateTime(DateTimeZone.getDefault()).toString(DateTimeFormat.shortTime());
+        return String.format("%s: %s", timeStamp, msg.getMessage());
     }
 
     @Override
-    public void write(List<Message> list) throws Exception {
+    public void write(List<Message> list) {
         for (Message message : list) {
             write(message);
         }
