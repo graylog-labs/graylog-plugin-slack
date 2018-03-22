@@ -107,8 +107,6 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
 
     private String buildFullMessageBody(Stream stream, Message msg) {
         String graylogUri = configuration.getString(SlackConfiguration.CK_GRAYLOG2_URL);
-        boolean notifyChannel = configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
-
         String titleLink;
         if (!isNullOrEmpty(graylogUri)) {
             titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
@@ -124,6 +122,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
             messageLink = "New message";
         }
 
+        boolean notifyChannel = configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
         String audience = notifyChannel ? "@channel " : "";
         return String.format("%s*%s in Graylog stream %s*:\n> %s", audience, messageLink, titleLink, msg.getMessage());
     }

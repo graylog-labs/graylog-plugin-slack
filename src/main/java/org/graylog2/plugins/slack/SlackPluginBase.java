@@ -73,7 +73,11 @@ public class SlackPluginBase {
         String url = configuration.getString(SlackConfiguration.CK_ICON_URL);
         String user = configuration.getString(SlackConfiguration.CK_USER_NAME);
         String channel = configuration.getString(SlackConfiguration.CK_CHANNEL);
-        boolean linkNames = configuration.getBoolean(SlackConfiguration.CK_LINK_NAMES);
+
+        //Note: Link names if notify channel or else the channel tag will be plain text.
+        boolean linkNames = configuration.getBoolean(SlackConfiguration.CK_LINK_NAMES) ||
+                configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
+
         return new SlackMessage(color, emoji, url, message, user, channel, linkNames);
     }
 

@@ -58,7 +58,8 @@ public class SlackClient {
         }
 
         try (final Writer writer = new OutputStreamWriter(conn.getOutputStream())) {
-            writer.write(message.getJsonString());
+            String json = message.getJsonString();
+            writer.write(json);
             writer.flush();
 
             final int responseCode = conn.getResponseCode();

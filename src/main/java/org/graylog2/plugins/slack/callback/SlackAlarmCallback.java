@@ -66,8 +66,6 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
 
     private String buildFullMessageBody(Stream stream, AlertCondition.CheckResult result) {
         String graylogUri = configuration.getString(SlackConfiguration.CK_GRAYLOG2_URL);
-        boolean notifyChannel = configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
-
         String titleLink;
         if (!isNullOrEmpty(graylogUri)) {
             titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
@@ -76,6 +74,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         }
 
         // Build custom message
+        boolean notifyChannel = configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
         String audience = notifyChannel ? "@channel " : "";
         String description = result.getResultDescription();
         return String.format("%s*Alert for Graylog stream %s*:\n> %s \n", audience, titleLink, description);

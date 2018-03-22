@@ -52,8 +52,7 @@ public class SlackMessage {
         final Map<String, Object> params = new HashMap<String, Object>() {{
             put("channel", channel);
             put("text", message);
-            put("link_names", linkNames ? "1" : "0");
-            put("parse", "none");
+            put("link_names", linkNames);
         }};
 
         if (!isNullOrEmpty(userName)) {
