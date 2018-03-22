@@ -10,7 +10,11 @@ public class SlackConfigurationRequestFactory {
 
     public static ConfigurationRequest createSlackMessageOutputConfigurationRequest() {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
-
+        configurationRequest.addField(new TextField(
+                SlackConfiguration.CK_COLOR, "Custom Message & Additional Info Color", "#FF0000",
+                "Color to use for Slack custom message and additional information attachments",
+                ConfigurationField.Optional.NOT_OPTIONAL)
+        );
         configurationRequest.addField(new TextField(
                 SlackConfiguration.CK_CUSTOM_MESSAGE, "Custom Message",
                 "##########\n" +
@@ -42,11 +46,6 @@ public class SlackConfigurationRequestFactory {
                 SlackConfiguration.CK_USER_NAME, "User name", "Graylog",
                 "User name of the sender in Slack",
                 ConfigurationField.Optional.OPTIONAL)
-        );
-        configurationRequest.addField(new TextField(
-                SlackConfiguration.CK_COLOR, "Color", "#FF0000",
-                "Color to use for Slack message",
-                ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new BooleanField(
                 SlackConfiguration.CK_NOTIFY_CHANNEL, "Notify Channel", false,
@@ -82,7 +81,7 @@ public class SlackConfigurationRequestFactory {
                         "Not used in alarm callback but only in the message output module.")
         );
         configurationRequest.addField(new BooleanField(
-                SlackConfiguration.CK_ADD_ATTACHMENT, "Include more information", true,
+                SlackConfiguration.CK_ADD_DETAILS, "Include more information", true,
                 "Add structured information as message attachment")
         );
 
@@ -92,6 +91,11 @@ public class SlackConfigurationRequestFactory {
     public static ConfigurationRequest createSlackAlarmCallbackConfigurationRequest() {
         final ConfigurationRequest configurationRequest = new ConfigurationRequest();
 
+        configurationRequest.addField(new TextField(
+                SlackConfiguration.CK_COLOR, "Custom Message Color", "#FF0000",
+                "Color to use for Slack custom message",
+                ConfigurationField.Optional.NOT_OPTIONAL)
+        );
         configurationRequest.addField(new TextField(
                 SlackConfiguration.CK_CUSTOM_MESSAGE, "Custom Message",
                 "##########\n" +
@@ -136,11 +140,6 @@ public class SlackConfigurationRequestFactory {
                 SlackConfiguration.CK_USER_NAME, "User name", "Graylog",
                 "User name of the sender in Slack",
                 ConfigurationField.Optional.OPTIONAL)
-        );
-        configurationRequest.addField(new TextField(
-                SlackConfiguration.CK_COLOR, "Color", "#FF0000",
-                "Color to use for Slack message",
-                ConfigurationField.Optional.NOT_OPTIONAL)
         );
         configurationRequest.addField(new NumberField(
                 SlackConfiguration.CK_ADD_BLITEMS, "Backlog items", 5,

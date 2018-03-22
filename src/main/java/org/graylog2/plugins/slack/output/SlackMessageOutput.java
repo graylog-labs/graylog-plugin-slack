@@ -71,14 +71,21 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
     @Override
     public void write(Message msg) throws RuntimeException {
         boolean shortMode = configuration.getBoolean(SlackConfiguration.CK_SHORT_MODE);
-        boolean addAttachment = configuration.getBoolean(SlackConfiguration.CK_ADD_ATTACHMENT);
-
         String message = shortMode ? buildShortMessageBody(msg) : buildFullMessageBody(stream, msg);
         SlackMessage slackMessage = createSlackMessage(configuration, message);
 
-        // Add attachments if requested.
-        if (!shortMode && addAttachment) {
-            addAttachment(msg, slackMessage);
+        // Add custom message
+        String template = configuration.getString(SlackConfiguration.CK_CUSTOM_MESSAGE);
+        Boolean hasTemplate = !isNullOrEmpty(template);
+        if (!shortMode && hasTemplate) {
+            String customMessage = buildCustomMessage(stream, msg, template);
+            slackMessage.setCustomMessage(customMessage);
+        }
+
+        // Add attachments
+        boolean addDetails = configuration.getBoolean(SlackConfiguration.CK_ADD_DETAILS);
+        if (!shortMode && addDetails) {
+            buildDetailsAttachment(msg, slackMessage);
         }
 
         try {
@@ -88,13 +95,13 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         }
     }
 
-    private void addAttachment(Message msg, SlackMessage slackMessage) {
-        slackMessage.addAttachment(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
-        slackMessage.addAttachment(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
+    private void buildDetailsAttachment(Message msg, SlackMessage slackMessage) {
+        slackMessage.addDetailsAttachmentField(new SlackMessage.AttachmentField("Stream Description", stream.getDescription(), false));
+        slackMessage.addDetailsAttachmentField(new SlackMessage.AttachmentField("Source", msg.getSource(), true));
 
         for (Map.Entry<String, Object> field : msg.getFields().entrySet()) {
             if (Message.RESERVED_FIELDS.contains(field.getKey())) continue;
-            slackMessage.addAttachment(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
+            slackMessage.addDetailsAttachmentField(new SlackMessage.AttachmentField(field.getKey(), field.getValue().toString(), true));
         }
     }
 
@@ -109,14 +116,6 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
             titleLink = "_" + stream.getTitle() + "_";
         }
 
-        // Build custom message
-        StringBuilder message = new StringBuilder(msg.getMessage());
-        String template = configuration.getString(SlackConfiguration.CK_CUSTOM_MESSAGE);
-        if (!isNullOrEmpty(template)) {
-            String customMessage = buildCustomMessage(stream, msg, template);
-            message.append("\n").append(customMessage);
-        }
-
         String messageLink;
         if (!isNullOrEmpty(graylogUri)) {
             String index = "graylog_deflector"; // would use msg.getFieldAs(String.class, "_index"), but it returns null
@@ -126,7 +125,7 @@ public class SlackMessageOutput extends SlackPluginBase implements MessageOutput
         }
 
         String audience = notifyChannel ? "@channel " : "";
-        return String.format("%s*%s in Graylog stream %s*:\n> %s", audience, messageLink, titleLink, message);
+        return String.format("%s*%s in Graylog stream %s*:\n> %s", audience, messageLink, titleLink, msg.getMessage());
     }
 
     private String buildCustomMessage(Stream stream, Message msg, String template) {
