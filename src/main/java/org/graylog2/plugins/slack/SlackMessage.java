@@ -6,9 +6,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +24,8 @@ public class SlackMessage {
     private final String iconEmoji;
     private final String color;
     private final boolean linkNames;
-
-    private final List<AttachmentField> attachments;
+    private final List<AttachmentField> detailFields;
+    private String customMessage;
 
     public SlackMessage(
             String color,
@@ -43,7 +43,8 @@ public class SlackMessage {
         this.userName = userName;
         this.channel = channel;
         this.linkNames = linkNames;
-        this.attachments = Lists.newArrayList();
+        this.detailFields = Lists.newArrayList();
+        this.customMessage = null;
     }
 
     public String getJsonString() {
@@ -51,8 +52,7 @@ public class SlackMessage {
         final Map<String, Object> params = new HashMap<String, Object>() {{
             put("channel", channel);
             put("text", message);
-            put("link_names", linkNames ? "1" : "0");
-            put("parse", "none");
+            put("link_names", linkNames);
         }};
 
         if (!isNullOrEmpty(userName)) {
@@ -67,9 +67,30 @@ public class SlackMessage {
             params.put("icon_emoji", ensureEmojiSyntax(iconEmoji));
         }
 
+        final List<Attachment> attachments = new ArrayList<>();
+        if (!isNullOrEmpty(customMessage)) {
+            final Attachment attachment = new Attachment(
+                    color,
+                    customMessage,
+                    "Custom Message",
+                    "Custom Message:",
+                    null
+            );
+            attachments.add(attachment);
+        }
+
+        if (!detailFields.isEmpty()) {
+            final Attachment attachment = new Attachment(
+                    color,
+                    null,
+                    "Alert details",
+                    "Alert Details:",
+                    detailFields
+            );
+            attachments.add(attachment);
+        }
+
         if (!attachments.isEmpty()) {
-            final Attachment attachment = new Attachment("Alert details", null, "Details:", color, attachments);
-            final List<Attachment> attachments = ImmutableList.of(attachment);
             params.put("attachments", attachments);
         }
 
@@ -80,8 +101,12 @@ public class SlackMessage {
         }
     }
 
-    public void addAttachment(AttachmentField attachment) {
-        this.attachments.add(attachment);
+    public void addDetailsAttachmentField(AttachmentField attachmentField) {
+        this.detailFields.add(attachmentField);
+    }
+
+    public void setCustomMessage(String customMessage) {
+        this.customMessage = customMessage;
     }
 
     private String ensureEmojiSyntax(final String x) {
@@ -108,12 +133,12 @@ public class SlackMessage {
         @JsonProperty
         public String pretext;
         @JsonProperty
-        public String color = "good";
+        public String color;
         @JsonProperty
         public List<AttachmentField> fields;
 
         @JsonCreator
-        public Attachment(String fallback, String text, String pretext, String color, List<AttachmentField> fields) {
+        public Attachment(String color, String text, String fallback, String pretext, List<AttachmentField> fields) {
             this.fallback = fallback;
             this.text = text;
             this.pretext = pretext;
@@ -130,7 +155,7 @@ public class SlackMessage {
         @JsonProperty
         public String value;
         @JsonProperty("short")
-        public boolean isShort = false;
+        public boolean isShort;
 
         @JsonCreator
         public AttachmentField(String title, String value, boolean isShort) {

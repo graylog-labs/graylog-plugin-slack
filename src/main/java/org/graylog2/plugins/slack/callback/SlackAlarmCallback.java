@@ -8,7 +8,6 @@ import org.graylog2.plugin.MessageSummary;
 import org.graylog2.plugin.alarms.AlertCondition;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallback;
 import org.graylog2.plugin.alarms.callbacks.AlarmCallbackConfigurationException;
-import org.graylog2.plugin.alarms.callbacks.AlarmCallbackException;
 import org.graylog2.plugin.configuration.Configuration;
 import org.graylog2.plugin.configuration.ConfigurationException;
 import org.graylog2.plugin.configuration.ConfigurationRequest;
@@ -45,23 +44,28 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
     }
 
     @Override
-    public void call(Stream stream, AlertCondition.CheckResult result) throws AlarmCallbackException {
-
+    public void call(Stream stream, AlertCondition.CheckResult result) {
         final SlackClient client = new SlackClient(configuration);
-        SlackMessage message = createSlackMessage(configuration, buildFullMessageBody(stream, result));
+        String text = buildFullMessageBody(stream, result);
+        SlackMessage slackMessage = createSlackMessage(configuration, text);
+
+        // Add custom message
+        String template = configuration.getString(SlackConfiguration.CK_CUSTOM_MESSAGE);
+        boolean hasTemplate = !isNullOrEmpty(template);
+        if (hasTemplate) {
+            String customMessage = buildCustomMessage(stream, result, template);
+            slackMessage.setCustomMessage(customMessage);
+        }
 
         try {
-            client.send(message);
+            client.send(slackMessage);
         } catch (SlackClient.SlackClientException e) {
             throw new RuntimeException("Could not send message to Slack.", e);
         }
     }
 
-
     private String buildFullMessageBody(Stream stream, AlertCondition.CheckResult result) {
         String graylogUri = configuration.getString(SlackConfiguration.CK_GRAYLOG2_URL);
-        boolean notifyChannel = configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
-
         String titleLink;
         if (!isNullOrEmpty(graylogUri)) {
             titleLink = "<" + buildStreamLink(graylogUri, stream) + "|" + stream.getTitle() + ">";
@@ -70,18 +74,11 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
         }
 
         // Build custom message
-        StringBuilder message = new StringBuilder(result.getResultDescription()).append("\n");
-        String template = configuration.getString(SlackConfiguration.CK_CUSTOM_MESSAGE);
-        if (!isNullOrEmpty(template)) {
-            String customMessage = buildCustomMessage(stream, result, template);
-            message.append("\n").append(customMessage);
-        }
-
+        boolean notifyChannel = configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
         String audience = notifyChannel ? "@channel " : "";
-        return String.format("%s*Alert for Graylog stream %s*:\n> %s",
-                audience, titleLink, message.toString());
+        String description = result.getResultDescription();
+        return String.format("%s*Alert for Graylog stream %s*:\n> %s \n", audience, titleLink, description);
     }
-
 
     private String buildCustomMessage(Stream stream, AlertCondition.CheckResult result, String template) {
         List<Message> backlog = getAlarmBacklog(result);
@@ -129,7 +126,7 @@ public class SlackAlarmCallback extends SlackPluginBase implements AlarmCallback
     }
 
     @Override
-    public void checkConfiguration() throws ConfigurationException {
+    public void checkConfiguration() {
         /* Never actually called by graylog-server */
     }
 

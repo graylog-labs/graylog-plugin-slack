@@ -14,4 +14,5 @@ public class SlackConfiguration {
     public static final String CK_SHORT_MODE = "short_mode";
     public static final String CK_ADD_BLITEMS = "backlog_items";
     public static final String CK_CUSTOM_MESSAGE = "custom_message";
+    public static final String CK_ADD_DETAILS = "add_details";
 }

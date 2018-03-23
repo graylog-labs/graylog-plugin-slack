@@ -8,6 +8,7 @@ import org.graylog2.plugins.slack.configuration.SlackConfiguration;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class SlackPluginBase {
 
@@ -23,7 +24,7 @@ public class SlackPluginBase {
         }
     }
 
-    protected static void checkConfiguration(Configuration configuration) throws ConfigurationException {
+    protected void checkConfiguration(Configuration configuration) throws ConfigurationException {
         if (!configuration.stringIsSet(SlackConfiguration.CK_WEBHOOK_URL)) {
             throw new ConfigurationException(SlackConfiguration.CK_WEBHOOK_URL + " is mandatory and must not be empty.");
         }
@@ -44,7 +45,7 @@ public class SlackPluginBase {
     private static void checkUri(Configuration configuration, String settingName) throws ConfigurationException {
         if (configuration.stringIsSet(settingName)) {
             try {
-                final URI uri = new URI(configuration.getString(settingName));
+                final URI uri = new URI(Objects.requireNonNull(configuration.getString(settingName)));
                 if (!isValidUriScheme(uri, "http", "https")) {
                     throw new ConfigurationException(settingName + " must be a valid HTTP or HTTPS URL.");
                 }
@@ -67,15 +68,17 @@ public class SlackPluginBase {
     }
 
     protected static SlackMessage createSlackMessage(Configuration configuration, String message) {
-        return new SlackMessage(
-                configuration.getString(SlackConfiguration.CK_COLOR),
-                configuration.getString(SlackConfiguration.CK_ICON_EMOJI),
-                configuration.getString(SlackConfiguration.CK_ICON_URL),
-                message,
-                configuration.getString(SlackConfiguration.CK_USER_NAME),
-                configuration.getString(SlackConfiguration.CK_CHANNEL),
-                configuration.getBoolean(SlackConfiguration.CK_LINK_NAMES)
-        );
+        String color = configuration.getString(SlackConfiguration.CK_COLOR);
+        String emoji = configuration.getString(SlackConfiguration.CK_ICON_EMOJI);
+        String url = configuration.getString(SlackConfiguration.CK_ICON_URL);
+        String user = configuration.getString(SlackConfiguration.CK_USER_NAME);
+        String channel = configuration.getString(SlackConfiguration.CK_CHANNEL);
+
+        //Note: Link names if notify channel or else the channel tag will be plain text.
+        boolean linkNames = configuration.getBoolean(SlackConfiguration.CK_LINK_NAMES) ||
+                configuration.getBoolean(SlackConfiguration.CK_NOTIFY_CHANNEL);
+
+        return new SlackMessage(color, emoji, url, message, user, channel, linkNames);
     }
 
     protected String buildMessageLink(String baseUrl, String index, String id) {
@@ -85,5 +88,4 @@ public class SlackPluginBase {
 
         return baseUrl + "messages/" + index + "/" + id;
     }
-
 }
