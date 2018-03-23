@@ -90,7 +90,7 @@ public class SlackMessage {
             attachments.add(attachment);
         }
 
-        if (attachments.size() > 0) {
+        if (!attachments.isEmpty()) {
             params.put("attachments", attachments);
         }
 
