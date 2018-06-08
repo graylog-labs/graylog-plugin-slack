@@ -1,4 +1,4 @@
-Slack/Mattermost Plugin for Graylog
+Slack/Discord/Mattermost Plugin for Graylog
 ========================
 
 [![Github Downloads](https://img.shields.io/github/downloads/graylog-labs/graylog-plugin-slack/total.svg)](https://github.com/graylog-labs/graylog-plugin-slack/releases)
@@ -14,7 +14,7 @@ Please use version 2.1.0 of this plugin if you are still running Graylog 1.x
 ![](screenshot.png)
 ![](screenshot2.png)
 
-This plugin can notify [Slack](https://www.slack.com) or [Mattermost](http://www.mattermost.org) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
+This plugin can notify [Slack](https://www.slack.com), [Discord](https://discordapp.com) or [Mattermost](http://www.mattermost.org) channels about triggered alerts in Graylog (Alarm Callback) and also forward each message routed into a stream (Message Output) in realtime.
 
 #### Short mode message output:
 
@@ -43,6 +43,13 @@ Restart `graylog-server` and you are done.
 #### Step 1: Create Slack Incoming Webhook
 
 Create a new Slack Incoming Webhook (`https://<organization>.slack.com/services/new/incoming-webhook`) and copy the URL it will present to you. It will ask you to select a Slack channel but you can override it in the plugin configuration later.
+
+### For Discord:
+
+#### Step 1: Create Discord Webhook
+
+For create a new Discord Webhook follow part 1 of [this guide](https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks) to create and retrieve a webhook URL for a specific channel and copy the URL it will present to you. 
+Add /slack to end of webhook url. (/webhooks/{webhook.id}/{webhook.token}/slack) and create  a "Slack alarm callback"
 
 ### For Mattermost:
 

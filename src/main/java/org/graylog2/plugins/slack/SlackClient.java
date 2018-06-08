@@ -53,6 +53,7 @@ public class SlackClient {
             conn.setDoOutput(true);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("User-Agent", "curl/7.58.0");
         } catch (URISyntaxException | IOException e) {
             throw new SlackClientException("Could not open connection to Slack API", e);
         }
