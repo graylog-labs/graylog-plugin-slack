@@ -40,7 +40,7 @@ public class SlackConfigurationRequestFactory {
         );
         configurationRequest.addField(new TextField(
                 SlackConfiguration.CK_CHANNEL, "Channel", "#channel", "Name of Slack #channel or @user for a direct message.",
-                ConfigurationField.Optional.NOT_OPTIONAL)
+                ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
                 SlackConfiguration.CK_USER_NAME, "User name", "Graylog",
@@ -134,7 +134,7 @@ public class SlackConfigurationRequestFactory {
         );
         configurationRequest.addField(new TextField(
                 SlackConfiguration.CK_CHANNEL, "Channel", "#channel", "Name of Slack #channel or @user for a direct message.",
-                ConfigurationField.Optional.NOT_OPTIONAL)
+                ConfigurationField.Optional.OPTIONAL)
         );
         configurationRequest.addField(new TextField(
                 SlackConfiguration.CK_USER_NAME, "User name", "Graylog",

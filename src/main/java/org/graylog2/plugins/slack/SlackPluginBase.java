@@ -29,10 +29,6 @@ public class SlackPluginBase {
             throw new ConfigurationException(SlackConfiguration.CK_WEBHOOK_URL + " is mandatory and must not be empty.");
         }
 
-        if (!configuration.stringIsSet(SlackConfiguration.CK_CHANNEL)) {
-            throw new ConfigurationException(SlackConfiguration.CK_CHANNEL + " is mandatory and must not be empty.");
-        }
-
         if (!configuration.stringIsSet(SlackConfiguration.CK_COLOR)) {
             throw new ConfigurationException(SlackConfiguration.CK_COLOR + " is mandatory and must not be empty.");
         }
