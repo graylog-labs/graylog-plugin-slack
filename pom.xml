@@ -6,7 +6,7 @@
 
     <groupId>org.graylog.plugins</groupId>
     <artifactId>graylog-plugin-slack</artifactId>
-    <version>3.1.0</version>
+    <version>3.1.1</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
@@ -33,7 +33,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <graylog2.plugin-dir>/usr/share/graylog-server/plugin</graylog2.plugin-dir>
-        <graylog2.version>2.0.0</graylog2.version>
+        <graylog2.version>5.1.0</graylog2.version>
     </properties>
 
     <dependencies>
